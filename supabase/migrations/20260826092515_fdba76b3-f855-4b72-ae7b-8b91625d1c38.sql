@@ -1,0 +1,3 @@
+CREATE POLICY "attachments_read" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'work-attachments');
+CREATE POLICY "attachments_insert" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'work-attachments' AND public.has_permission(auth.uid(), 'tasks', 'create'));
+CREATE POLICY "attachments_delete" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'work-attachments' AND public.has_permission(auth.uid(), 'tasks', 'edit'));

@@ -256,6 +256,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "work_assignees_profile_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "work_assignees_work_item_id_fkey"
             columns: ["work_item_id"]
             isOneToOne: false

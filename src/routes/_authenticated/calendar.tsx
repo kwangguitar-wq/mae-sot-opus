@@ -207,7 +207,7 @@ function MonthView({ cursor, byDate, todayISO, onSelect, onCreate }: {
                   ))}
                   {(byDate[iso]?.length ?? 0) > 2 && (
                     <button onClick={() => onSelect(iso)} className="px-1 text-[10px] text-muted-foreground hover:underline">
-                      +{byDate[iso].length - 2} งาน
+                      +{(byDate[iso]?.length ?? 0) - 2} งาน
                     </button>
                   )}
                 </div>
@@ -269,7 +269,7 @@ function ListView({ byDate, range, onOpen }: {
         <div key={iso}>
           <p className="mb-2 text-sm font-semibold">{formatThaiDate(iso)}</p>
           <div className="space-y-2">
-            {byDate[iso].map((w: any) => (
+            {(byDate[iso] ?? []).map((w: any) => (
               <button
                 key={w.id}
                 onClick={() => onOpen(w)}

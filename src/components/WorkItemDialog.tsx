@@ -157,7 +157,7 @@ export function WorkItemDialog({
     }
   }
 
-  const assignees = form.watch("assignee_ids");
+  const assignees = form.watch("assignee_ids") ?? [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

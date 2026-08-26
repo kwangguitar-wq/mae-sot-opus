@@ -27,9 +27,8 @@ import { WorkItemDetail } from "@/components/WorkItemDetail";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    create: search["create"] === true || search["create"] === "true" ? true : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { create?: boolean } =>
+    search["create"] === true || search["create"] === "true" ? { create: true } : {},
   head: () => ({
     meta: [
       { title: `จัดการงาน — ${APP_NAME} ${ORG_NAME}` },

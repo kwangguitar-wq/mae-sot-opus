@@ -174,7 +174,7 @@ export const getSettings = createServerFn({ method: "GET" })
     const ctx = context as unknown as SupabaseCtx;
     const { data, error } = await ctx.supabase.from("settings").select("*");
     if (error) throw new Error(error.message);
-    const map: Record<string, unknown> = {};
+    const map: Record<string, any> = {};
     for (const row of data ?? []) map[(row as any).key] = (row as any).value;
     return map;
   });
@@ -272,7 +272,7 @@ export const backupData = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const ctx = context as unknown as SupabaseCtx;
     await requireAdmin(ctx);
-    const out: Record<string, unknown[]> = {};
+    const out: Record<string, any[]> = {};
     for (const table of BACKUP_TABLES) {
       const { data, error } = await ctx.supabase.from(table).select("*");
       if (error) throw new Error(`สำรองตาราง ${table} ไม่สำเร็จ: ${error.message}`);
@@ -290,7 +290,7 @@ export const restoreData = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z.object({
       backup: z.object({
-        meta: z.object({ app: z.string(), version: z.number() }),
+        meta: z.object({ app: z.string(), version: z.number(), created_at: z.string().optional() }),
         data: z.record(z.string(), z.array(z.record(z.string(), z.unknown()))),
       }),
       confirm: z.literal("RESTORE"),

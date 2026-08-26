@@ -35,7 +35,8 @@ const formSchema = z.object({
   assignee_ids: z.array(z.string()).default([]),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.output<typeof formSchema>;
+type FormInput = z.input<typeof formSchema>;
 
 export type WorkItemLike = {
   id: string;
@@ -64,7 +65,7 @@ export function WorkItemDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item?: WorkItemLike | null;
-  defaultDate?: string;
+  defaultDate?: string | undefined;
 }) {
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
@@ -75,7 +76,7 @@ export function WorkItemDialog({
   const { data: locations } = useQuery({ queryKey: ["locations"], queryFn: () => listLocations() });
   const { data: profiles } = useQuery({ queryKey: ["profiles"], queryFn: () => listProfiles() });
 
-  const form = useForm<FormValues>({
+  const form = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "", description: "", category_id: null, work_date: defaultDate ?? "",
@@ -156,7 +157,7 @@ export function WorkItemDialog({
     }
   }
 
-  const assignees = form.watch("assignee_ids");
+  const assignees = form.watch("assignee_ids") ?? [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -365,6 +365,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_protected_owner: { Args: { _user_id: string }; Returns: boolean }
+      owner_email: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "staff"

@@ -70,6 +70,12 @@ export const updateUserAdmin = createServerFn({ method: "POST" })
     const ctx = context as unknown as SupabaseCtx;
     await requireAdmin(ctx);
 
+    // บัญชีเจ้าของระบบต้องเป็นผู้ดูแลระบบเสมอ — ป้องกันการลดสิทธิ์
+    const { data: isOwner } = await ctx.supabase.rpc("is_owner_account", { _user_id: data.userId });
+    if (isOwner && data.role !== "admin") {
+      throw new Error("บัญชีผู้ดูแลระบบหลัก (Owner) ไม่สามารถลดสิทธิ์ได้");
+    }
+
     const { error: pErr } = await ctx.supabase
       .from("profiles")
       .update({ full_name: data.full_name, position: data.position })

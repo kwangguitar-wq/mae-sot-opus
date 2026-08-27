@@ -310,17 +310,31 @@ export const restoreData = createServerFn({ method: "POST" })
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // ลบตามลำดับย้อน dependency แล้วค่อย insert กลับ
+    // คอลัมน์คีย์จริงของแต่ละตาราง (settings ใช้ key, work_assignees เป็น composite key)
+    const PK: Record<string, string> = {
+      profiles: "id", user_roles: "id", user_permissions: "id", categories: "id",
+      locations: "id", work_items: "id", work_assignees: "work_item_id",
+      notifications: "id", settings: "key",
+    };
+    const CONFLICT: Record<string, string> = {
+      work_assignees: "work_item_id,user_id", settings: "key",
+    };
     const deleteOrder = [...BACKUP_TABLES].reverse().filter((t) => t !== "profiles");
     for (const table of deleteOrder) {
-      const { error } = await supabaseAdmin.from(table).delete().not("id", "is", null);
+      const col = PK[table] ?? "id";
+      const { error } = await supabaseAdmin.from(table).delete().not(col, "is", null);
       if (error) throw new Error(`ล้างตาราง ${table} ไม่สำเร็จ: ${error.message}`);
     }
     for (const table of BACKUP_TABLES) {
       const rows = data.backup.data[table] ?? [];
       if (rows.length === 0) continue;
-      const { error } = await supabaseAdmin.from(table).upsert(rows as any[]);
+      const conflict = CONFLICT[table];
+      const { error } = conflict
+        ? await supabaseAdmin.from(table).upsert(rows as any[], { onConflict: conflict })
+        : await supabaseAdmin.from(table).upsert(rows as any[]);
       if (error) throw new Error(`กู้คืนตาราง ${table} ไม่สำเร็จ: ${error.message}`);
     }
+
     await writeAudit(ctx, "restore", "system", null, { at: data.backup.meta.created_at });
     return { ok: true };
   });

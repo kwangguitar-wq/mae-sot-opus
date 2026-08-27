@@ -147,11 +147,39 @@
 }
 
 /* สไตล์สำหรับหน้าพิมพ์ A4 */
+@page {
+  size: A4;
+  margin: 14mm 12mm;
+}
+
 @media print {
-  .no-print {
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .no-print,
+  body aside,
+  body header,
+  body nav.fixed,
+  [data-sonner-toaster],
+  [role="dialog"] {
     display: none !important;
+  }
+  body main {
+    padding: 0 !important;
+    overflow: visible !important;
   }
   .print-page {
     padding: 0 !important;
   }
+  .print-page,
+  .rounded-xl,
+  .rounded-lg {
+    box-shadow: none !important;
+  }
+  a[href]::after {
+    content: "";
+  }
 }
+

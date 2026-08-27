@@ -40,8 +40,16 @@ export const listUsers = createServerFn({ method: "GET" })
       ctx.supabase.from("user_roles").select("user_id, role"),
       ctx.supabase.from("user_permissions").select("*"),
     ]);
+    const owners = await Promise.all(
+      (profiles ?? []).map(async (p: any) => {
+        const { data } = await ctx.supabase.rpc("is_protected_owner", { _user_id: p.id });
+        return data === true ? p.id : null;
+      }),
+    );
+    const ownerIds = new Set(owners.filter(Boolean));
     return (profiles ?? []).map((p: any) => ({
       ...p,
+      is_owner: ownerIds.has(p.id),
       roles: (roles ?? []).filter((r: any) => r.user_id === p.id).map((r: any) => r.role),
       permissions: (perms ?? []).filter((x: any) => x.user_id === p.id),
     }));
@@ -71,7 +79,7 @@ export const updateUserAdmin = createServerFn({ method: "POST" })
     await requireAdmin(ctx);
 
     // บัญชีเจ้าของระบบต้องเป็นผู้ดูแลระบบเสมอ — ป้องกันการลดสิทธิ์
-    const { data: isOwner } = await ctx.supabase.rpc("is_owner_account", { _user_id: data.userId });
+    const { data: isOwner } = await ctx.supabase.rpc("is_protected_owner", { _user_id: data.userId });
     if (isOwner && data.role !== "admin") {
       throw new Error("บัญชีผู้ดูแลระบบหลัก (Owner) ไม่สามารถลดสิทธิ์ได้");
     }
@@ -310,17 +318,31 @@ export const restoreData = createServerFn({ method: "POST" })
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // ลบตามลำดับย้อน dependency แล้วค่อย insert กลับ
+    // คอลัมน์คีย์จริงของแต่ละตาราง (settings ใช้ key, work_assignees เป็น composite key)
+    const PK: Record<string, string> = {
+      profiles: "id", user_roles: "id", user_permissions: "id", categories: "id",
+      locations: "id", work_items: "id", work_assignees: "work_item_id",
+      notifications: "id", settings: "key",
+    };
+    const CONFLICT: Record<string, string> = {
+      work_assignees: "work_item_id,user_id", settings: "key",
+    };
     const deleteOrder = [...BACKUP_TABLES].reverse().filter((t) => t !== "profiles");
     for (const table of deleteOrder) {
-      const { error } = await supabaseAdmin.from(table).delete().not("id", "is", null);
+      const col = PK[table] ?? "id";
+      const { error } = await supabaseAdmin.from(table).delete().not(col, "is", null);
       if (error) throw new Error(`ล้างตาราง ${table} ไม่สำเร็จ: ${error.message}`);
     }
     for (const table of BACKUP_TABLES) {
       const rows = data.backup.data[table] ?? [];
       if (rows.length === 0) continue;
-      const { error } = await supabaseAdmin.from(table).upsert(rows as any[]);
+      const conflict = CONFLICT[table];
+      const { error } = conflict
+        ? await supabaseAdmin.from(table).upsert(rows as any[], { onConflict: conflict })
+        : await supabaseAdmin.from(table).upsert(rows as any[]);
       if (error) throw new Error(`กู้คืนตาราง ${table} ไม่สำเร็จ: ${error.message}`);
     }
+
     await writeAudit(ctx, "restore", "system", null, { at: data.backup.meta.created_at });
     return { ok: true };
   });

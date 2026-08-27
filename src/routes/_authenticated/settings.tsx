@@ -147,7 +147,14 @@ function UsersTab() {
       {(users ?? []).map((u: any) => (
         <div key={u.id} className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-3">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">{u.full_name || "ไม่ระบุชื่อ"}</p>
+            <p className="text-sm font-semibold">
+              {u.full_name || "ไม่ระบุชื่อ"}
+              {u.is_owner && (
+                <span className="ml-2 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                  เจ้าของระบบ
+                </span>
+              )}
+            </p>
             <p className="text-xs text-muted-foreground">
               {u.position || "ไม่ระบุตำแหน่ง"} · {(u.roles ?? []).includes("admin") ? "ผู้ดูแลระบบ" : "เจ้าหน้าที่"}
             </p>
@@ -177,14 +184,24 @@ function UsersTab() {
             </div>
             <div className="space-y-1.5">
               <Label>บทบาท</Label>
-              <Select value={role} onValueChange={(v) => setRole(v as "admin" | "staff")}>
+              <Select
+                value={role}
+                onValueChange={(v) => setRole(v as "admin" | "staff")}
+                disabled={!!editing?.is_owner}
+              >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">ผู้ดูแลระบบ (Admin)</SelectItem>
                   <SelectItem value="staff">เจ้าหน้าที่ (Staff)</SelectItem>
                 </SelectContent>
               </Select>
+              {editing?.is_owner && (
+                <p className="text-xs text-muted-foreground">
+                  บัญชีเจ้าของระบบต้องเป็นผู้ดูแลระบบเสมอ ไม่สามารถลดสิทธิ์ได้
+                </p>
+              )}
             </div>
+
 
             {role === "admin" ? (
               <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">

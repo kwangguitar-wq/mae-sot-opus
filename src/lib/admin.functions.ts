@@ -40,8 +40,16 @@ export const listUsers = createServerFn({ method: "GET" })
       ctx.supabase.from("user_roles").select("user_id, role"),
       ctx.supabase.from("user_permissions").select("*"),
     ]);
+    const owners = await Promise.all(
+      (profiles ?? []).map(async (p: any) => {
+        const { data } = await ctx.supabase.rpc("is_protected_owner", { _user_id: p.id });
+        return data === true ? p.id : null;
+      }),
+    );
+    const ownerIds = new Set(owners.filter(Boolean));
     return (profiles ?? []).map((p: any) => ({
       ...p,
+      is_owner: ownerIds.has(p.id),
       roles: (roles ?? []).filter((r: any) => r.user_id === p.id).map((r: any) => r.role),
       permissions: (perms ?? []).filter((x: any) => x.user_id === p.id),
     }));

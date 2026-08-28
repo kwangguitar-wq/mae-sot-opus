@@ -19,6 +19,13 @@ type LineSettings = {
 
 const RETRYABLE = new Set([429, 500, 502, 503, 504]);
 
+/** LINE ต้องการ retry key รูปแบบ UUID — แปลง seed คงที่ให้เป็น UUID เพื่อกันส่งซ้ำ */
+async function seedToUuid(seed: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(seed));
+  const h = [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
+}
+
 /** ส่งข้อความ push พร้อม retry สำหรับข้อผิดพลาดชั่วคราว และกันการส่งซ้ำด้วย X-Line-Retry-Key */
 export async function pushLineMessage(
   targetId: string,
@@ -38,6 +45,7 @@ export async function pushLineMessage(
     return { sent: false, reason: "no_target", message: "ยังไม่ได้ระบุ LINE Target ID ในหน้าตั้งค่า" };
   }
 
+  const uuidKey = await seedToUuid(retryKey);
   let lastStatus: number | undefined;
   let lastDetail = "";
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -48,7 +56,7 @@ export async function pushLineMessage(
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
           // คีย์เดิม = LINE จะไม่ส่งข้อความซ้ำแม้เรียกใหม่
-          "X-Line-Retry-Key": retryKey,
+          "X-Line-Retry-Key": uuidKey,
         },
         body: JSON.stringify({ to: targetId, messages: [{ type: "text", text: text.slice(0, 4900) }] }),
       });

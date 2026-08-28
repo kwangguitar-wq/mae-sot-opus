@@ -246,19 +246,12 @@ export const sendLineNotification = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
     await requireAdmin(ctx);
-    const token = process.env["LINE_CHANNEL_ACCESS_TOKEN"];
-    if (!token) return { sent: false, message: "ยังไม่ได้ตั้งค่า LINE credentials — การส่งข้อความยังไม่พร้อมใช้งาน" };
     const { data: setting } = await ctx.supabase.from("settings").select("value").eq("key", "line").maybeSingle();
-    const targetId = (setting?.value as any)?.target_id;
-    if (!targetId) return { sent: false, message: "ยังไม่ได้ระบุ LINE Target ID (ผู้ใช้/กลุ่ม) ในการตั้งค่า" };
-    const res = await fetch("https://api.line.me/v2/bot/message/push", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ to: targetId, messages: [{ type: "text", text: data.message }] }),
-    });
-    if (!res.ok) return { sent: false, message: `LINE ตอบกลับด้วยข้อผิดพลาด (${res.status})` };
-    await writeAudit(ctx, "send_line", "notification", null, { message: data.message });
-    return { sent: true, message: "ส่งข้อความ LINE เรียบร้อยแล้ว" };
+    const targetId = (setting?.value as any)?.target_id ?? "";
+    const { pushLineMessage } = await import("./line.server");
+    const result = await pushLineMessage(targetId, data.message, `test-${ctx.userId}-${Date.now()}`);
+    if (result.sent) await writeAudit(ctx, "send_line", "notification", null, { message: data.message });
+    return { sent: result.sent, message: result.message };
   });
 
 // ===== ข้อมูลตัวอย่าง =====

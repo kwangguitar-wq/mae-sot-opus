@@ -252,7 +252,9 @@ export const createWorkItem = createServerFn({ method: "POST" })
 
     await writeAudit(ctx, "create", "work_item", item.id, { title: data.title, work_date: data.work_date });
     await notifyAssignees(ctx, assignee_ids, "มีงานใหม่มอบหมายให้คุณ", data.title, item.id, "assignment");
-    return item;
+    const { notifyLineWorkEvent } = await import("./line.server");
+    const line = await notifyLineWorkEvent(ctx.supabase, "create", item);
+    return { ...item, line_notification: { sent: line.sent, message: line.message } };
   });
 
 export const updateWorkItem = createServerFn({ method: "POST" })
@@ -286,7 +288,9 @@ export const updateWorkItem = createServerFn({ method: "POST" })
 
     await writeAudit(ctx, "update", "work_item", id, { title: payload.title, changes: fields });
     await notifyAssignees(ctx, assignee_ids, "งานของคุณมีการปรับปรุง", payload.title, id, "update");
-    return item;
+    const { notifyLineWorkEvent } = await import("./line.server");
+    const line = await notifyLineWorkEvent(ctx.supabase, "update", item);
+    return { ...item, line_notification: { sent: line.sent, message: line.message } };
   });
 
 export const deleteWorkItem = createServerFn({ method: "POST" })

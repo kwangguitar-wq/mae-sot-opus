@@ -451,7 +451,7 @@ function LineTab() {
   const [targetId, setTargetId] = useState("");
   const [template, setTemplate] = useState("มีงานใหม่: {title} วันที่ {date}");
   const [busy, setBusy] = useState(false);
-  const [testMsg, setTestMsg] = useState("ทดสอบการแจ้งเตือนจากระบบตารางงานฝ่ายประชาสัมพันธ์");
+  const [testMsg, setTestMsg] = useState("ทดสอบการแจ้งเตือนจากระบบตารางงานประชาสัมพันธ์");
 
   useEffect(() => {
     const line = (settings as any)?.line;

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, FileDown, Printer, Pencil, Trash2, Eye } from "lucide-react";
 import {
-  listWorkItems, listCategories, listLocations, listProfiles, deleteWorkItem,
+  listWorkItems, listCategories, listLocations, listProfiles, deleteWorkItem, getWorkItem,
 } from "@/lib/work.functions";
 import {
   APP_NAME, ORG_NAME, PRIORITY_LABELS, STATUS_LABELS, formatThaiDate,
@@ -27,8 +27,12 @@ import { WorkItemDetail } from "@/components/WorkItemDetail";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
-  validateSearch: (search: Record<string, unknown>): { create?: boolean } =>
-    search["create"] === true || search["create"] === "true" ? { create: true } : {},
+  validateSearch: (search: Record<string, unknown>): { create?: boolean; task?: string } => {
+    const out: { create?: boolean; task?: string } = {};
+    if (search["create"] === true || search["create"] === "true") out.create = true;
+    if (typeof search["task"] === "string" && search["task"]) out.task = search["task"];
+    return out;
+  },
   head: () => ({
     meta: [
       { title: `จัดการงาน — ${APP_NAME} ${ORG_NAME}` },
@@ -45,7 +49,7 @@ export const Route = createFileRoute("/_authenticated/tasks")({
 const ALL = "all";
 
 function TasksPage() {
-  const { create } = Route.useSearch();
+  const { create, task } = Route.useSearch();
   const queryClient = useQueryClient();
   const [q, setQ] = useState("");
   const [from, setFrom] = useState("");
@@ -65,6 +69,16 @@ function TasksPage() {
   useEffect(() => {
     if (create) setCreateOpen(true);
   }, [create]);
+
+  // เปิดรายละเอียดงานอัตโนมัติเมื่อเข้ามาจากลิงก์ใน LINE (?task=<id>)
+  const { data: linkedTask } = useQuery({
+    queryKey: ["work-item", task],
+    queryFn: () => getWorkItem({ data: { id: task! } }),
+    enabled: !!task,
+  });
+  useEffect(() => {
+    if (linkedTask) setDetail(linkedTask);
+  }, [linkedTask]);
 
   const filters = useMemo(
     () => ({

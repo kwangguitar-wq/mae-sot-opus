@@ -450,6 +450,7 @@ function LineTab() {
   const [onUpdate, setOnUpdate] = useState(false);
   const [targetId, setTargetId] = useState("");
   const [template, setTemplate] = useState("มีงานใหม่: {title} วันที่ {date}");
+  const [appUrl, setAppUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [testMsg, setTestMsg] = useState("ทดสอบการแจ้งเตือนจากระบบตารางงานประชาสัมพันธ์");
 
@@ -461,6 +462,7 @@ function LineTab() {
     setOnUpdate(!!line.notify_on_update);
     setTargetId(line.target_id ?? "");
     setTemplate(line.message_template ?? "มีงานใหม่: {title} วันที่ {date}");
+    setAppUrl(line.app_url ?? "");
   }, [settings]);
 
   async function save() {
@@ -470,6 +472,7 @@ function LineTab() {
         data: {
           enabled, notify_on_create: onCreate, notify_on_update: onUpdate,
           target_id: targetId.trim(), message_template: template.trim(),
+          app_url: appUrl.trim(),
         },
       });
       toast.success("บันทึกการตั้งค่าแล้ว");
@@ -530,7 +533,14 @@ function LineTab() {
           <div className="space-y-1.5">
             <Label htmlFor="tpl">รูปแบบข้อความ</Label>
             <Input id="tpl" value={template} onChange={(e) => setTemplate(e.target.value)} />
-            <p className="text-xs text-muted-foreground">ใช้ตัวแปร {"{title}"} และ {"{date}"} ได้</p>
+            <p className="text-xs text-muted-foreground">
+              ใช้ตัวแปร {"{title}"} {"{date}"} {"{time}"} และ {"{link}"} ได้ — ถ้าไม่ใส่ {"{link}"} ระบบจะแนบลิงก์เปิดงานต่อท้ายให้อัตโนมัติ
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="app-url">ลิงก์เว็บระบบ (สำหรับแนบในข้อความ)</Label>
+            <Input id="app-url" value={appUrl} onChange={(e) => setAppUrl(e.target.value)} placeholder="https://mee-sot-opus.lovable.app" />
+            <p className="text-xs text-muted-foreground">เว้นว่างได้ ระบบจะใช้โดเมนที่เผยแพร่เป็นค่าเริ่มต้น</p>
           </div>
           <div className="flex justify-end">
             <Button onClick={save} disabled={busy}><Save className="mr-1 size-4" /> บันทึกการตั้งค่า</Button>

@@ -20,11 +20,17 @@ async function writeAudit(
   details: Record<string, unknown>,
 ) {
   const { data: profile } = await ctx.supabase
-    .from("profiles").select("full_name").eq("id", ctx.userId).maybeSingle();
+    .from("profiles")
+    .select("full_name")
+    .eq("id", ctx.userId)
+    .maybeSingle();
   await ctx.supabase.from("audit_logs").insert({
     user_id: ctx.userId,
     user_name: profile?.full_name ?? "",
-    action, entity, entity_id: entityId, details,
+    action,
+    entity,
+    entity_id: entityId,
+    details,
   });
 }
 
@@ -59,21 +65,23 @@ export const listUsers = createServerFn({ method: "GET" })
 export const updateUserAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      userId: z.string().uuid(),
-      full_name: z.string().trim().min(1).max(100),
-      position: z.string().trim().max(100).default(""),
-      role: z.enum(["admin", "staff"]),
-      permissions: z.array(
-        z.object({
-          module: z.string(),
-          can_view: z.boolean(),
-          can_create: z.boolean(),
-          can_edit: z.boolean(),
-          can_delete: z.boolean(),
-        }),
-      ),
-    }).parse(input),
+    z
+      .object({
+        userId: z.string().uuid(),
+        full_name: z.string().trim().min(1).max(100),
+        position: z.string().trim().max(100).default(""),
+        role: z.enum(["admin", "staff"]),
+        permissions: z.array(
+          z.object({
+            module: z.string(),
+            can_view: z.boolean(),
+            can_create: z.boolean(),
+            can_edit: z.boolean(),
+            can_delete: z.boolean(),
+          }),
+        ),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
@@ -81,7 +89,9 @@ export const updateUserAdmin = createServerFn({ method: "POST" })
 
     // บัญชีเจ้าของระบบต้องเป็นผู้ดูแลระบบเสมอ — ป้องกันการลดสิทธิ์
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: isOwner } = await supabaseAdmin.rpc("is_protected_owner", { _user_id: data.userId });
+    const { data: isOwner } = await supabaseAdmin.rpc("is_protected_owner", {
+      _user_id: data.userId,
+    });
     if (isOwner && data.role !== "admin") {
       throw new Error("บัญชีผู้ดูแลระบบหลัก (Owner) ไม่สามารถลดสิทธิ์ได้");
     }
@@ -107,7 +117,9 @@ export const updateUserAdmin = createServerFn({ method: "POST" })
     }
 
     await writeAudit(ctx, "update", "user", data.userId, {
-      full_name: data.full_name, role: data.role, permissions: data.permissions,
+      full_name: data.full_name,
+      role: data.role,
+      permissions: data.permissions,
     });
     return { ok: true };
   });
@@ -116,18 +128,34 @@ export const updateUserAdmin = createServerFn({ method: "POST" })
 
 const nameSchema = z.object({
   name: z.string().trim().min(1, "กรุณาระบุชื่อ").max(120),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
   address: z.string().trim().max(300).optional(),
 });
 
 export const saveCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ id: z.string().uuid().optional(), name: nameSchema.shape.name, color: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#2563eb") }).parse(input),
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        name: nameSchema.shape.name,
+        color: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/)
+          .default("#2563eb"),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
-    const { data: can } = await ctx.supabase.rpc("has_permission", { _user_id: ctx.userId, _module: "settings", _action: "edit" });
+    const { data: can } = await ctx.supabase.rpc("has_permission", {
+      _user_id: ctx.userId,
+      _module: "settings",
+      _action: "edit",
+    });
     if (!can) throw new Error("คุณไม่มีสิทธิ์จัดการประเภทงาน");
     const payload = { name: data.name, color: data.color };
     const { error } = data.id
@@ -143,7 +171,11 @@ export const deleteCategory = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
-    const { data: can } = await ctx.supabase.rpc("has_permission", { _user_id: ctx.userId, _module: "settings", _action: "delete" });
+    const { data: can } = await ctx.supabase.rpc("has_permission", {
+      _user_id: ctx.userId,
+      _module: "settings",
+      _action: "delete",
+    });
     if (!can) throw new Error("คุณไม่มีสิทธิ์ลบประเภทงาน");
     const { error } = await ctx.supabase.from("categories").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -154,11 +186,21 @@ export const deleteCategory = createServerFn({ method: "POST" })
 export const saveLocation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ id: z.string().uuid().optional(), name: nameSchema.shape.name, address: z.string().trim().max(300).default("") }).parse(input),
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        name: nameSchema.shape.name,
+        address: z.string().trim().max(300).default(""),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
-    const { data: can } = await ctx.supabase.rpc("has_permission", { _user_id: ctx.userId, _module: "settings", _action: "edit" });
+    const { data: can } = await ctx.supabase.rpc("has_permission", {
+      _user_id: ctx.userId,
+      _module: "settings",
+      _action: "edit",
+    });
     if (!can) throw new Error("คุณไม่มีสิทธิ์จัดการสถานที่");
     const payload = { name: data.name, address: data.address };
     const { error } = data.id
@@ -174,7 +216,11 @@ export const deleteLocation = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
-    const { data: can } = await ctx.supabase.rpc("has_permission", { _user_id: ctx.userId, _module: "settings", _action: "delete" });
+    const { data: can } = await ctx.supabase.rpc("has_permission", {
+      _user_id: ctx.userId,
+      _module: "settings",
+      _action: "delete",
+    });
     if (!can) throw new Error("คุณไม่มีสิทธิ์ลบสถานที่");
     const { error } = await ctx.supabase.from("locations").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -198,14 +244,16 @@ export const getSettings = createServerFn({ method: "GET" })
 export const updateLineSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      enabled: z.boolean(),
-      notify_on_create: z.boolean(),
-      notify_on_update: z.boolean(),
-      target_id: z.string().trim().max(100).default(""),
-      message_template: z.string().trim().max(500).default("มีงานใหม่: {title} วันที่ {date}"),
-      app_url: z.string().trim().max(300).default(""),
-    }).parse(input),
+    z
+      .object({
+        enabled: z.boolean(),
+        notify_on_create: z.boolean(),
+        notify_on_update: z.boolean(),
+        target_id: z.string().trim().max(100).default(""),
+        message_template: z.string().trim().max(500).default("มีงานใหม่: {title} วันที่ {date}"),
+        app_url: z.string().trim().max(300).default(""),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
@@ -228,16 +276,24 @@ export const getLineStatus = createServerFn({ method: "GET" })
     if (!token) {
       return {
         configured: false,
-        message: "ยังไม่ได้ตั้งค่า LINE Channel Access Token — เพิ่มค่าใน Project Settings → Secrets ด้วยชื่อ LINE_CHANNEL_ACCESS_TOKEN เพื่อเปิดใช้งานการส่งแจ้งเตือนผ่าน LINE",
+        message:
+          "ยังไม่ได้ตั้งค่า LINE Channel Access Token — เพิ่มค่าใน Project Settings → Secrets ด้วยชื่อ LINE_CHANNEL_ACCESS_TOKEN เพื่อเปิดใช้งานการส่งแจ้งเตือนผ่าน LINE",
       };
     }
     try {
       const res = await fetch("https://api.line.me/v2/bot/info", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) return { configured: false, message: "พบ Token แต่ตรวจสอบกับ LINE ไม่สำเร็จ — กรุณาตรวจสอบความถูกต้อง" };
+      if (!res.ok)
+        return {
+          configured: false,
+          message: "พบ Token แต่ตรวจสอบกับ LINE ไม่สำเร็จ — กรุณาตรวจสอบความถูกต้อง",
+        };
       const info = await res.json();
-      return { configured: true, message: `เชื่อมต่อ LINE Official Account แล้ว: ${info.displayName ?? "พร้อมใช้งาน"}` };
+      return {
+        configured: true,
+        message: `เชื่อมต่อ LINE Official Account แล้ว: ${info.displayName ?? "พร้อมใช้งาน"}`,
+      };
     } catch {
       return { configured: false, message: "ไม่สามารถเชื่อมต่อบริการ LINE ได้ในขณะนี้" };
     }
@@ -249,11 +305,20 @@ export const sendLineNotification = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
     await requireAdmin(ctx);
-    const { data: setting } = await ctx.supabase.from("settings").select("value").eq("key", "line").maybeSingle();
+    const { data: setting } = await ctx.supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "line")
+      .maybeSingle();
     const targetId = (setting?.value as any)?.target_id ?? "";
     const { pushLineMessage } = await import("./line.server");
-    const result = await pushLineMessage(targetId, data.message, `test-${ctx.userId}-${Date.now()}`);
-    if (result.sent) await writeAudit(ctx, "send_line", "notification", null, { message: data.message });
+    const result = await pushLineMessage(
+      targetId,
+      data.message,
+      `test-${ctx.userId}-${Date.now()}`,
+    );
+    if (result.sent)
+      await writeAudit(ctx, "send_line", "notification", null, { message: data.message });
     return { sent: result.sent, message: result.message };
   });
 
@@ -273,8 +338,15 @@ export const deleteDemoData = createServerFn({ method: "POST" })
 // ===== สำรอง / กู้คืนข้อมูล (Admin) =====
 
 const BACKUP_TABLES = [
-  "profiles", "user_roles", "user_permissions", "categories", "locations",
-  "work_items", "work_assignees", "notifications", "settings",
+  "profiles",
+  "user_roles",
+  "user_permissions",
+  "categories",
+  "locations",
+  "work_items",
+  "work_assignees",
+  "notifications",
+  "settings",
 ] as const;
 
 export const backupData = createServerFn({ method: "GET" })
@@ -298,13 +370,19 @@ export const backupData = createServerFn({ method: "GET" })
 export const restoreData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      backup: z.object({
-        meta: z.object({ app: z.string(), version: z.number(), created_at: z.string().optional() }),
-        data: z.record(z.string(), z.array(z.record(z.string(), z.unknown()))),
-      }),
-      confirm: z.literal("RESTORE"),
-    }).parse(input),
+    z
+      .object({
+        backup: z.object({
+          meta: z.object({
+            app: z.string(),
+            version: z.number(),
+            created_at: z.string().optional(),
+          }),
+          data: z.record(z.string(), z.array(z.record(z.string(), z.unknown()))),
+        }),
+        confirm: z.literal("RESTORE"),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
@@ -316,12 +394,19 @@ export const restoreData = createServerFn({ method: "POST" })
     // ลบตามลำดับย้อน dependency แล้วค่อย insert กลับ
     // คอลัมน์คีย์จริงของแต่ละตาราง (settings ใช้ key, work_assignees เป็น composite key)
     const PK: Record<string, string> = {
-      profiles: "id", user_roles: "id", user_permissions: "id", categories: "id",
-      locations: "id", work_items: "id", work_assignees: "work_item_id",
-      notifications: "id", settings: "key",
+      profiles: "id",
+      user_roles: "id",
+      user_permissions: "id",
+      categories: "id",
+      locations: "id",
+      work_items: "id",
+      work_assignees: "work_item_id",
+      notifications: "id",
+      settings: "key",
     };
     const CONFLICT: Record<string, string> = {
-      work_assignees: "work_item_id,user_id", settings: "key",
+      work_assignees: "work_item_id,user_id",
+      settings: "key",
     };
     const deleteOrder = [...BACKUP_TABLES].reverse().filter((t) => t !== "profiles");
     for (const table of deleteOrder) {

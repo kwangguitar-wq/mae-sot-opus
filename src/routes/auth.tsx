@@ -32,10 +32,12 @@ const loginSchema = z.object({
   password: z.string().min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"),
 });
 
-const signupSchema = loginSchema.extend({
-  full_name: z.string().trim().min(1, "กรุณาระบุชื่อ-นามสกุล").max(100),
-  confirm: z.string(),
-}).refine((v) => v.password === v.confirm, { message: "รหัสผ่านไม่ตรงกัน", path: ["confirm"] });
+const signupSchema = loginSchema
+  .extend({
+    full_name: z.string().trim().min(1, "กรุณาระบุชื่อ-นามสกุล").max(100),
+    confirm: z.string(),
+  })
+  .refine((v) => v.password === v.confirm, { message: "รหัสผ่านไม่ตรงกัน", path: ["confirm"] });
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -56,7 +58,11 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword(values);
     setLoading(false);
     if (error) {
-      toast.error(error.message === "Invalid login credentials" ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : error.message);
+      toast.error(
+        error.message === "Invalid login credentials"
+          ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
+          : error.message,
+      );
       return;
     }
     toast.success("เข้าสู่ระบบสำเร็จ");
@@ -131,17 +137,31 @@ function AuthPage() {
                 <form onSubmit={loginForm.handleSubmit(onLogin)} className="mt-4 space-y-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="email">อีเมล</Label>
-                    <Input id="email" type="email" autoComplete="email" {...loginForm.register("email")} />
+                    <Input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      {...loginForm.register("email")}
+                    />
                     {loginForm.formState.errors.email && (
-                      <p className="text-xs text-destructive">{loginForm.formState.errors.email.message}</p>
+                      <p className="text-xs text-destructive">
+                        {loginForm.formState.errors.email.message}
+                      </p>
                     )}
                   </div>
                   {!resetMode && (
                     <div className="space-y-1.5">
                       <Label htmlFor="password">รหัสผ่าน</Label>
-                      <Input id="password" type="password" autoComplete="current-password" {...loginForm.register("password")} />
+                      <Input
+                        id="password"
+                        type="password"
+                        autoComplete="current-password"
+                        {...loginForm.register("password")}
+                      />
                       {loginForm.formState.errors.password && (
-                        <p className="text-xs text-destructive">{loginForm.formState.errors.password.message}</p>
+                        <p className="text-xs text-destructive">
+                          {loginForm.formState.errors.password.message}
+                        </p>
                       )}
                     </div>
                   )}
@@ -150,7 +170,12 @@ function AuthPage() {
                       <Button type="button" className="w-full" onClick={onReset} disabled={loading}>
                         {loading ? "กำลังส่ง..." : "ส่งลิงก์ตั้งรหัสผ่านใหม่"}
                       </Button>
-                      <Button type="button" variant="ghost" className="w-full" onClick={() => setResetMode(false)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full"
+                        onClick={() => setResetMode(false)}
+                      >
                         กลับไปเข้าสู่ระบบ
                       </Button>
                     </div>
@@ -177,28 +202,51 @@ function AuthPage() {
                     <Label htmlFor="full_name">ชื่อ-นามสกุล</Label>
                     <Input id="full_name" {...signupForm.register("full_name")} />
                     {signupForm.formState.errors.full_name && (
-                      <p className="text-xs text-destructive">{signupForm.formState.errors.full_name.message}</p>
+                      <p className="text-xs text-destructive">
+                        {signupForm.formState.errors.full_name.message}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="signup-email">อีเมล</Label>
-                    <Input id="signup-email" type="email" autoComplete="email" {...signupForm.register("email")} />
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      autoComplete="email"
+                      {...signupForm.register("email")}
+                    />
                     {signupForm.formState.errors.email && (
-                      <p className="text-xs text-destructive">{signupForm.formState.errors.email.message}</p>
+                      <p className="text-xs text-destructive">
+                        {signupForm.formState.errors.email.message}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="signup-password">รหัสผ่าน</Label>
-                    <Input id="signup-password" type="password" autoComplete="new-password" {...signupForm.register("password")} />
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      autoComplete="new-password"
+                      {...signupForm.register("password")}
+                    />
                     {signupForm.formState.errors.password && (
-                      <p className="text-xs text-destructive">{signupForm.formState.errors.password.message}</p>
+                      <p className="text-xs text-destructive">
+                        {signupForm.formState.errors.password.message}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="confirm">ยืนยันรหัสผ่าน</Label>
-                    <Input id="confirm" type="password" autoComplete="new-password" {...signupForm.register("confirm")} />
+                    <Input
+                      id="confirm"
+                      type="password"
+                      autoComplete="new-password"
+                      {...signupForm.register("confirm")}
+                    />
                     {signupForm.formState.errors.confirm && (
-                      <p className="text-xs text-destructive">{signupForm.formState.errors.confirm.message}</p>
+                      <p className="text-xs text-destructive">
+                        {signupForm.formState.errors.confirm.message}
+                      </p>
                     )}
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>

@@ -40,9 +40,10 @@ export const listUsers = createServerFn({ method: "GET" })
       ctx.supabase.from("user_roles").select("user_id, role"),
       ctx.supabase.from("user_permissions").select("*"),
     ]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const owners = await Promise.all(
       (profiles ?? []).map(async (p: any) => {
-        const { data } = await ctx.supabase.rpc("is_protected_owner", { _user_id: p.id });
+        const { data } = await supabaseAdmin.rpc("is_protected_owner", { _user_id: p.id });
         return data === true ? p.id : null;
       }),
     );

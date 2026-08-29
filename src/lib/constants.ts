@@ -1,5 +1,5 @@
 // ค่าคงที่และป้ายภาษาไทยของระบบ
-export const APP_NAME = "ตารางงานฝ่ายประชาสัมพันธ์";
+export const APP_NAME = "ตารางงานประชาสัมพันธ์";
 export const ORG_NAME = "เทศบาลนครแม่สอด";
 
 export const PRIORITY_LABELS: Record<string, string> = {

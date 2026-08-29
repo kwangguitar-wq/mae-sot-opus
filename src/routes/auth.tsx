@@ -17,9 +17,9 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: `เข้าสู่ระบบ — ${APP_NAME} ${ORG_NAME}` },
-      { name: "description", content: "เข้าสู่ระบบเพื่อจัดการตารางงานฝ่ายประชาสัมพันธ์" },
+      { name: "description", content: "เข้าสู่ระบบเพื่อจัดการตารางงานประชาสัมพันธ์" },
       { property: "og:title", content: `เข้าสู่ระบบ — ${APP_NAME}` },
-      { property: "og:description", content: "เข้าสู่ระบบเพื่อจัดการตารางงานฝ่ายประชาสัมพันธ์" },
+      { property: "og:description", content: "เข้าสู่ระบบเพื่อจัดการตารางงานประชาสัมพันธ์" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

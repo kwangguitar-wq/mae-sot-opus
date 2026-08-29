@@ -64,7 +64,10 @@ async function notifyAssignees(
 ) {
   const targets = assigneeIds.filter((id) => id !== ctx.userId);
   if (targets.length === 0) return;
-  await ctx.supabase.from("notifications").insert(
+  // การแจ้งเตือนถึงผู้ใช้อื่นต้องสร้างผ่าน service role ฝั่งเซิร์ฟเวอร์เท่านั้น
+  // (RLS ของตาราง notifications อนุญาตให้ผู้ใช้สร้างแจ้งเตือนให้ตัวเองเท่านั้น)
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin.from("notifications").insert(
     targets.map((uid) => ({
       user_id: uid,
       title,

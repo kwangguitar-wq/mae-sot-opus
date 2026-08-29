@@ -80,7 +80,8 @@ export const updateUserAdmin = createServerFn({ method: "POST" })
     await requireAdmin(ctx);
 
     // บัญชีเจ้าของระบบต้องเป็นผู้ดูแลระบบเสมอ — ป้องกันการลดสิทธิ์
-    const { data: isOwner } = await ctx.supabase.rpc("is_protected_owner", { _user_id: data.userId });
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: isOwner } = await supabaseAdmin.rpc("is_protected_owner", { _user_id: data.userId });
     if (isOwner && data.role !== "admin") {
       throw new Error("บัญชีผู้ดูแลระบบหลัก (Owner) ไม่สามารถลดสิทธิ์ได้");
     }

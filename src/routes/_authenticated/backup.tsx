@@ -11,8 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAccess } from "@/components/AppLayout";
 
@@ -20,7 +26,10 @@ export const Route = createFileRoute("/_authenticated/backup")({
   head: () => ({
     meta: [
       { title: `สำรองและกู้คืนข้อมูล — ${APP_NAME} ${ORG_NAME}` },
-      { name: "description", content: "สำรองข้อมูลระบบเป็นไฟล์ และกู้คืนข้อมูลโดยผู้ดูแลระบบพร้อมการยืนยันก่อนทำรายการ" },
+      {
+        name: "description",
+        content: "สำรองข้อมูลระบบเป็นไฟล์ และกู้คืนข้อมูลโดยผู้ดูแลระบบพร้อมการยืนยันก่อนทำรายการ",
+      },
       { property: "og:title", content: `สำรองและกู้คืนข้อมูล — ${APP_NAME}` },
       { property: "og:description", content: "สำรองและกู้คืนข้อมูลระบบตารางงานประชาสัมพันธ์" },
       { property: "og:type", content: "website" },
@@ -43,7 +52,9 @@ function BackupPage() {
     return (
       <div className="flex flex-col items-center gap-3 py-20 text-center">
         <ShieldAlert className="size-8 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">หน้านี้ใช้ได้เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น</p>
+        <p className="text-sm text-muted-foreground">
+          หน้านี้ใช้ได้เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น
+        </p>
       </div>
     );
   }
@@ -56,7 +67,9 @@ function BackupPage() {
       toast.success("สำรองข้อมูลเรียบร้อยแล้ว");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "สำรองข้อมูลไม่สำเร็จ");
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function pickFile(file: File | undefined) {
@@ -84,7 +97,9 @@ function BackupPage() {
       queryClient.invalidateQueries();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "กู้คืนข้อมูลไม่สำเร็จ");
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -92,10 +107,15 @@ function BackupPage() {
       <h1 className="text-xl font-bold lg:text-2xl">สำรองและกู้คืนข้อมูล</h1>
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><DatabaseBackup className="size-4" /> สำรองข้อมูล</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <DatabaseBackup className="size-4" /> สำรองข้อมูล
+          </CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            ดาวน์โหลดข้อมูลทั้งระบบ (ผู้ใช้ สิทธิ์ ประเภทงาน สถานที่ งาน ผู้รับผิดชอบ การแจ้งเตือน และการตั้งค่า) เป็นไฟล์ JSON
+            ดาวน์โหลดข้อมูลทั้งระบบ (ผู้ใช้ สิทธิ์ ประเภทงาน สถานที่ งาน ผู้รับผิดชอบ การแจ้งเตือน
+            และการตั้งค่า) เป็นไฟล์ JSON
           </p>
           <Button onClick={doBackup} disabled={busy}>
             {busy ? "กำลังสำรอง..." : "ดาวน์โหลดไฟล์สำรอง"}
@@ -104,7 +124,11 @@ function BackupPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Upload className="size-4" /> กู้คืนข้อมูล</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Upload className="size-4" /> กู้คืนข้อมูล
+          </CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-destructive">
             คำเตือน: การกู้คืนจะเขียนทับข้อมูลปัจจุบันทั้งหมด กรุณาสำรองข้อมูลล่าสุดก่อนดำเนินการ
@@ -122,7 +146,15 @@ function BackupPage() {
         </CardContent>
       </Card>
 
-      <AlertDialog open={open} onOpenChange={(o) => { if (!o) { setOpen(false); setPayload(null); } }}>
+      <AlertDialog
+        open={open}
+        onOpenChange={(o) => {
+          if (!o) {
+            setOpen(false);
+            setPayload(null);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>ยืนยันการกู้คืนข้อมูล</AlertDialogTitle>
@@ -130,11 +162,18 @@ function BackupPage() {
               ข้อมูลปัจจุบันจะถูกแทนที่ด้วยข้อมูลจากไฟล์สำรอง พิมพ์ RESTORE เพื่อยืนยัน
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <Input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="RESTORE" />
+          <Input
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder="RESTORE"
+          />
           <AlertDialogFooter>
             <AlertDialogCancel disabled={busy}>ยกเลิก</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); doRestore(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                doRestore();
+              }}
               disabled={busy || confirmText !== "RESTORE"}
             >
               {busy ? "กำลังกู้คืน..." : "กู้คืนข้อมูล"}

@@ -20,7 +20,11 @@ type LineSettings = {
 
 /** ลิงก์เปิดงานโดยตรง — ใช้ค่า app_url จากหน้าตั้งค่า มิฉะนั้นใช้โดเมนที่เผยแพร่ */
 export function buildWorkLink(workId: string, appUrl?: string): string {
-  const base = (appUrl || process.env["APP_BASE_URL"] || "https://mee-sot-opus.lovable.app").replace(/\/+$/, "");
+  const base = (
+    appUrl ||
+    process.env["APP_BASE_URL"] ||
+    "https://mee-sot-opus.lovable.app"
+  ).replace(/\/+$/, "");
   return `${base}/tasks?task=${workId}`;
 }
 
@@ -49,7 +53,11 @@ export async function pushLineMessage(
     };
   }
   if (!targetId) {
-    return { sent: false, reason: "no_target", message: "ยังไม่ได้ระบุ LINE Target ID ในหน้าตั้งค่า" };
+    return {
+      sent: false,
+      reason: "no_target",
+      message: "ยังไม่ได้ระบุ LINE Target ID ในหน้าตั้งค่า",
+    };
   }
 
   const uuidKey = await seedToUuid(retryKey);
@@ -65,10 +73,14 @@ export async function pushLineMessage(
           // คีย์เดิม = LINE จะไม่ส่งข้อความซ้ำแม้เรียกใหม่
           "X-Line-Retry-Key": uuidKey,
         },
-        body: JSON.stringify({ to: targetId, messages: [{ type: "text", text: text.slice(0, 4900) }] }),
+        body: JSON.stringify({
+          to: targetId,
+          messages: [{ type: "text", text: text.slice(0, 4900) }],
+        }),
       });
       lastStatus = res.status;
-      if (res.ok) return { sent: true, status: res.status, message: "ส่งข้อความ LINE เรียบร้อยแล้ว" };
+      if (res.ok)
+        return { sent: true, status: res.status, message: "ส่งข้อความ LINE เรียบร้อยแล้ว" };
       lastDetail = ((await res.json().catch(() => ({}))) as { message?: string }).message ?? "";
       if (!RETRYABLE.has(res.status)) break;
     } catch {
@@ -91,12 +103,23 @@ export async function pushLineMessage(
 export async function notifyLineWorkEvent(
   supabase: { from: (t: string) => any },
   event: "create" | "update",
-  work: { id: string; title: string; work_date: string; start_time?: string | null; updated_at?: string | null },
+  work: {
+    id: string;
+    title: string;
+    work_date: string;
+    start_time?: string | null;
+    updated_at?: string | null;
+  },
 ): Promise<LineSendResult> {
   try {
-    const { data } = await supabase.from("settings").select("value").eq("key", "line").maybeSingle();
+    const { data } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "line")
+      .maybeSingle();
     const cfg = (data?.value ?? {}) as LineSettings;
-    if (!cfg.enabled) return { sent: false, reason: "disabled", message: "ปิดการแจ้งเตือน LINE อยู่" };
+    if (!cfg.enabled)
+      return { sent: false, reason: "disabled", message: "ปิดการแจ้งเตือน LINE อยู่" };
     if (event === "create" && cfg.notify_on_create === false)
       return { sent: false, reason: "disabled", message: "ปิดการแจ้งเตือนเมื่อสร้างงาน" };
     if (event === "update" && cfg.notify_on_update === false)
@@ -118,6 +141,10 @@ export async function notifyLineWorkEvent(
       `${event}-${work.id}-${work.work_date}-${work.updated_at ?? ""}`,
     );
   } catch {
-    return { sent: false, reason: "network_error", message: "ไม่สามารถส่งแจ้งเตือน LINE ได้ในขณะนี้" };
+    return {
+      sent: false,
+      reason: "network_error",
+      message: "ไม่สามารถส่งแจ้งเตือน LINE ได้ในขณะนี้",
+    };
   }
 }

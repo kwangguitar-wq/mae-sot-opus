@@ -10,14 +10,21 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/audit")({
   head: () => ({
     meta: [
       { title: `บันทึกการใช้งาน — ${APP_NAME} ${ORG_NAME}` },
-      { name: "description", content: "ประวัติการใช้งานระบบ ผู้ทำรายการ เวลา และข้อมูลสำคัญที่เปลี่ยนแปลง" },
+      {
+        name: "description",
+        content: "ประวัติการใช้งานระบบ ผู้ทำรายการ เวลา และข้อมูลสำคัญที่เปลี่ยนแปลง",
+      },
       { property: "og:title", content: `บันทึกการใช้งาน — ${APP_NAME}` },
       { property: "og:description", content: "Audit log ของระบบตารางงานประชาสัมพันธ์" },
       { property: "og:type", content: "website" },
@@ -38,16 +45,21 @@ const ENTITY_LABELS: Record<string, string> = {
   notification: "การแจ้งเตือน",
 };
 const ACTION_LABELS: Record<string, string> = {
-  create: "สร้าง", update: "แก้ไข", delete: "ลบ",
-  backup: "สำรองข้อมูล", restore: "กู้คืนข้อมูล",
-  delete_demo: "ลบข้อมูลตัวอย่าง", send_line: "ส่ง LINE",
+  create: "สร้าง",
+  update: "แก้ไข",
+  delete: "ลบ",
+  backup: "สำรองข้อมูล",
+  restore: "กู้คืนข้อมูล",
+  delete_demo: "ลบข้อมูลตัวอย่าง",
+  send_line: "ส่ง LINE",
 };
 
 function AuditPage() {
   const [entity, setEntity] = useState(ALL);
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["audit-logs", entity],
-    queryFn: () => listAuditLogs({ data: entity === ALL ? { limit: 200 } : { entity, limit: 200 } }),
+    queryFn: () =>
+      listAuditLogs({ data: entity === ALL ? { limit: 200 } : { entity, limit: 200 } }),
   });
 
   function exportCSV() {
@@ -73,14 +85,25 @@ function AuditPage() {
           <div className="space-y-1.5">
             <Label className="text-xs">หัวข้อ</Label>
             <Select value={entity} onValueChange={setEntity}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>ทั้งหมด</SelectItem>
-                {Object.entries(ENTITY_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                {Object.entries(ENTITY_LABELS).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>
+                    {v}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" size="sm" onClick={exportCSV} disabled={(data ?? []).length === 0}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportCSV}
+            disabled={(data ?? []).length === 0}
+          >
             <FileDown className="mr-1 size-4" /> ส่งออก CSV
           </Button>
         </div>
@@ -88,11 +111,19 @@ function AuditPage() {
 
       {isError ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <p className="text-muted-foreground">โหลดบันทึกการใช้งานไม่สำเร็จ (เฉพาะผู้มีสิทธิ์เท่านั้น)</p>
-          <Button variant="outline" onClick={() => refetch()}>ลองอีกครั้ง</Button>
+          <p className="text-muted-foreground">
+            โหลดบันทึกการใช้งานไม่สำเร็จ (เฉพาะผู้มีสิทธิ์เท่านั้น)
+          </p>
+          <Button variant="outline" onClick={() => refetch()}>
+            ลองอีกครั้ง
+          </Button>
         </div>
       ) : isLoading ? (
-        <div className="space-y-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)}</div>
+        <div className="space-y-2">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-14 w-full" />
+          ))}
+        </div>
       ) : (data ?? []).length === 0 ? (
         <div className="rounded-xl border bg-card py-16 text-center text-sm text-muted-foreground">
           ยังไม่มีบันทึกการใช้งาน
@@ -112,7 +143,9 @@ function AuditPage() {
             <tbody>
               {(data ?? []).map((l: any) => (
                 <tr key={l.id} className="border-t align-top">
-                  <td className="px-3 py-2 whitespace-nowrap">{formatThaiDateTime(l.created_at)}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {formatThaiDateTime(l.created_at)}
+                  </td>
                   <td className="px-3 py-2">{l.user_name || "—"}</td>
                   <td className="px-3 py-2">{ACTION_LABELS[l.action] ?? l.action}</td>
                   <td className="px-3 py-2">{ENTITY_LABELS[l.entity] ?? l.entity}</td>

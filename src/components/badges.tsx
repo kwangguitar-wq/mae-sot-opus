@@ -18,7 +18,10 @@ const statusStyles: Record<string, string> = {
 
 export function PriorityBadge({ priority, className }: { priority: string; className?: string }) {
   return (
-    <Badge variant="outline" className={cn("border font-medium", priorityStyles[priority], className)}>
+    <Badge
+      variant="outline"
+      className={cn("border font-medium", priorityStyles[priority], className)}
+    >
       {PRIORITY_LABELS[priority] ?? priority}
     </Badge>
   );

@@ -1,8 +1,17 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  LayoutDashboard, CalendarDays, ClipboardList, Bell, ScrollText,
-  Settings, DatabaseBackup, LogOut, Menu, Building2, Plus,
+  LayoutDashboard,
+  CalendarDays,
+  ClipboardList,
+  Bell,
+  ScrollText,
+  Settings,
+  DatabaseBackup,
+  LogOut,
+  Menu,
+  Building2,
+  Plus,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,15 +45,16 @@ export function canView(access: Access | undefined, module: ModuleKey) {
   return access.permissions.some((p) => p.module === module && p.can_view);
 }
 
-const NAV_ITEMS: { to: string; label: string; icon: typeof LayoutDashboard; module: ModuleKey }[] = [
-  { to: "/dashboard", label: "แดชบอร์ด", icon: LayoutDashboard, module: "dashboard" },
-  { to: "/calendar", label: "ปฏิทินงาน", icon: CalendarDays, module: "calendar" },
-  { to: "/tasks", label: "จัดการงาน", icon: ClipboardList, module: "tasks" },
-  { to: "/notifications", label: "แจ้งเตือน", icon: Bell, module: "notifications" },
-  { to: "/audit", label: "บันทึกการใช้งาน", icon: ScrollText, module: "audit" },
-  { to: "/settings", label: "ตั้งค่าระบบ", icon: Settings, module: "settings" },
-  { to: "/backup", label: "สำรองข้อมูล", icon: DatabaseBackup, module: "backup" },
-];
+const NAV_ITEMS: { to: string; label: string; icon: typeof LayoutDashboard; module: ModuleKey }[] =
+  [
+    { to: "/dashboard", label: "แดชบอร์ด", icon: LayoutDashboard, module: "dashboard" },
+    { to: "/calendar", label: "ปฏิทินงาน", icon: CalendarDays, module: "calendar" },
+    { to: "/tasks", label: "จัดการงาน", icon: ClipboardList, module: "tasks" },
+    { to: "/notifications", label: "แจ้งเตือน", icon: Bell, module: "notifications" },
+    { to: "/audit", label: "บันทึกการใช้งาน", icon: ScrollText, module: "audit" },
+    { to: "/settings", label: "ตั้งค่าระบบ", icon: Settings, module: "settings" },
+    { to: "/backup", label: "สำรองข้อมูล", icon: DatabaseBackup, module: "backup" },
+  ];
 
 function NavLinks({ access, onNavigate }: { access: Access | undefined; onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -112,19 +122,28 @@ function NotificationBell() {
         <div className="border-b px-4 py-3 text-sm font-semibold">การแจ้งเตือนล่าสุด</div>
         <div className="max-h-80 overflow-y-auto">
           {(notifications ?? []).length === 0 && (
-            <p className="px-4 py-6 text-center text-sm text-muted-foreground">ยังไม่มีการแจ้งเตือน</p>
+            <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+              ยังไม่มีการแจ้งเตือน
+            </p>
           )}
           {(notifications ?? []).slice(0, 10).map((n: any) => (
-            <div key={n.id} className={cn("border-b px-4 py-3 last:border-0", !n.is_read && "bg-accent/50")}>
+            <div
+              key={n.id}
+              className={cn("border-b px-4 py-3 last:border-0", !n.is_read && "bg-accent/50")}
+            >
               <p className="text-sm font-medium">{n.title}</p>
               <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{n.body}</p>
-              <p className="mt-1 text-[11px] text-muted-foreground">{formatThaiDateTime(n.created_at)}</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {formatThaiDateTime(n.created_at)}
+              </p>
             </div>
           ))}
         </div>
         <div className="border-t p-2">
           <Link to="/notifications">
-            <Button variant="ghost" size="sm" className="w-full">ดูทั้งหมด</Button>
+            <Button variant="ghost" size="sm" className="w-full">
+              ดูทั้งหมด
+            </Button>
           </Link>
         </div>
       </PopoverContent>
@@ -167,7 +186,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </div>
         <div className="border-t border-sidebar-border p-3">
           <div className="mb-2 px-3">
-            <p className="truncate text-sm font-medium">{access?.profile?.full_name ?? "ผู้ใช้งาน"}</p>
+            <p className="truncate text-sm font-medium">
+              {access?.profile?.full_name ?? "ผู้ใช้งาน"}
+            </p>
             <p className="truncate text-xs text-sidebar-foreground/70">
               {access?.isAdmin ? "ผู้ดูแลระบบ" : access?.profile?.position || "เจ้าหน้าที่"}
             </p>

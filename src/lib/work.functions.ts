@@ -18,8 +18,16 @@ const workItemInput = z.object({
   description: z.string().trim().max(5000).optional().default(""),
   category_id: z.string().uuid().nullable().optional(),
   work_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "รูปแบบวันที่ไม่ถูกต้อง"),
-  start_time: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
-  end_time: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
+  start_time: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .nullable()
+    .optional(),
+  end_time: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .nullable()
+    .optional(),
   location_id: z.string().uuid().nullable().optional(),
   location_text: z.string().trim().max(300).optional().default(""),
   priority: z.enum(["low", "medium", "high", "urgent"]),
@@ -93,7 +101,10 @@ export const listWorkItems = createServerFn({ method: "POST" })
       .order("work_date", { ascending: true })
       .order("start_time", { ascending: true, nullsFirst: false });
 
-    if (data.q) query = query.or(`title.ilike.%${data.q}%,description.ilike.%${data.q}%,location_text.ilike.%${data.q}%`);
+    if (data.q)
+      query = query.or(
+        `title.ilike.%${data.q}%,description.ilike.%${data.q}%,location_text.ilike.%${data.q}%`,
+      );
     if (data.from) query = query.gte("work_date", data.from);
     if (data.to) query = query.lte("work_date", data.to);
     if (data.categoryId) query = query.eq("category_id", data.categoryId);
@@ -144,7 +155,7 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     const now = new Date();
     const today = now.toISOString().slice(0, 10);
     const weekEnd = new Date(now);
-    weekEnd.setDate(weekEnd.getDate() + (7 - weekEnd.getDay() + 6) % 7 || 7);
+    weekEnd.setDate(weekEnd.getDate() + ((7 - weekEnd.getDay() + 6) % 7) || 7);
     const monthStart = `${today.slice(0, 7)}-01`;
     const monthEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const monthEnd = monthEndDate.toISOString().slice(0, 10);
@@ -154,13 +165,19 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     const open = (w: any) => w.status === "pending" || w.status === "in_progress";
 
     const byCategory: Record<string, { name: string; color: string; count: number }> = {};
-    const byStatus: Record<string, number> = { pending: 0, in_progress: 0, completed: 0, cancelled: 0 };
+    const byStatus: Record<string, number> = {
+      pending: 0,
+      in_progress: 0,
+      completed: 0,
+      cancelled: 0,
+    };
     const byAssignee: Record<string, { name: string; count: number }> = {};
 
     for (const w of all) {
       const cat = (w as any).category;
       const cname = cat?.name ?? "ไม่ระบุประเภท";
-      if (!byCategory[cname]) byCategory[cname] = { name: cname, color: cat?.color ?? "#94a3b8", count: 0 };
+      if (!byCategory[cname])
+        byCategory[cname] = { name: cname, color: cat?.color ?? "#94a3b8", count: 0 };
       byCategory[cname].count++;
       byStatus[(w as any).status] = (byStatus[(w as any).status] ?? 0) + 1;
       for (const a of (w as any).assignees ?? []) {
@@ -174,13 +191,16 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       today: all.filter((w: any) => w.work_date === today),
       todayCount: all.filter((w: any) => w.work_date === today).length,
       weekCount: all.filter((w: any) => w.work_date >= today && w.work_date <= weekEndISO).length,
-      monthCount: all.filter((w: any) => w.work_date >= monthStart && w.work_date <= monthEnd).length,
+      monthCount: all.filter((w: any) => w.work_date >= monthStart && w.work_date <= monthEnd)
+        .length,
       urgent: all.filter((w: any) => w.priority === "urgent" && open(w)),
       overdue: all.filter((w: any) => open(w) && w.work_date < today),
       total: all.length,
       byCategory: Object.values(byCategory),
       byStatus,
-      byAssignee: Object.values(byAssignee).sort((a, b) => b.count - a.count).slice(0, 8),
+      byAssignee: Object.values(byAssignee)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8),
     };
   });
 
@@ -235,7 +255,9 @@ export const createWorkItem = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
     const { data: canCreate } = await ctx.supabase.rpc("has_permission", {
-      _user_id: ctx.userId, _module: "tasks", _action: "create",
+      _user_id: ctx.userId,
+      _module: "tasks",
+      _action: "create",
     });
     if (!canCreate) throw new Error("คุณไม่มีสิทธิ์สร้างงาน");
 
@@ -253,8 +275,18 @@ export const createWorkItem = createServerFn({ method: "POST" })
         .insert(assignee_ids.map((uid) => ({ work_item_id: item.id, user_id: uid })));
     }
 
-    await writeAudit(ctx, "create", "work_item", item.id, { title: data.title, work_date: data.work_date });
-    await notifyAssignees(ctx, assignee_ids, "มีงานใหม่มอบหมายให้คุณ", data.title, item.id, "assignment");
+    await writeAudit(ctx, "create", "work_item", item.id, {
+      title: data.title,
+      work_date: data.work_date,
+    });
+    await notifyAssignees(
+      ctx,
+      assignee_ids,
+      "มีงานใหม่มอบหมายให้คุณ",
+      data.title,
+      item.id,
+      "assignment",
+    );
     const { notifyLineWorkEvent } = await import("./line.server");
     const line = await notifyLineWorkEvent(ctx.supabase, "create", item);
     return { ...item, line_notification: { sent: line.sent, message: line.message } };
@@ -262,13 +294,13 @@ export const createWorkItem = createServerFn({ method: "POST" })
 
 export const updateWorkItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ id: z.string().uuid(), data: workItemInput }).parse(input),
-  )
+  .inputValidator((input) => z.object({ id: z.string().uuid(), data: workItemInput }).parse(input))
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
     const { data: canEdit } = await ctx.supabase.rpc("has_permission", {
-      _user_id: ctx.userId, _module: "tasks", _action: "edit",
+      _user_id: ctx.userId,
+      _module: "tasks",
+      _action: "edit",
     });
     if (!canEdit) throw new Error("คุณไม่มีสิทธิ์แก้ไขงาน");
 
@@ -302,12 +334,17 @@ export const deleteWorkItem = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
     const { data: canDelete } = await ctx.supabase.rpc("has_permission", {
-      _user_id: ctx.userId, _module: "tasks", _action: "delete",
+      _user_id: ctx.userId,
+      _module: "tasks",
+      _action: "delete",
     });
     if (!canDelete) throw new Error("คุณไม่มีสิทธิ์ลบงาน");
 
     const { data: existing } = await ctx.supabase
-      .from("work_items").select("title").eq("id", data.id).maybeSingle();
+      .from("work_items")
+      .select("title")
+      .eq("id", data.id)
+      .maybeSingle();
     const { error } = await ctx.supabase.from("work_items").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     await writeAudit(ctx, "delete", "work_item", data.id, { title: existing?.title ?? "" });
@@ -336,8 +373,10 @@ export const markNotificationRead = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;
     const { error } = await ctx.supabase
-      .from("notifications").update({ is_read: true })
-      .eq("id", data.id).eq("user_id", ctx.userId);
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", data.id)
+      .eq("user_id", ctx.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -347,8 +386,10 @@ export const markAllNotificationsRead = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const ctx = context as unknown as SupabaseCtx;
     const { error } = await ctx.supabase
-      .from("notifications").update({ is_read: true })
-      .eq("user_id", ctx.userId).eq("is_read", false);
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", ctx.userId)
+      .eq("is_read", false);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -358,7 +399,9 @@ export const markAllNotificationsRead = createServerFn({ method: "POST" })
 export const listAuditLogs = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ entity: z.string().optional(), limit: z.number().min(1).max(500).default(200) }).parse(input ?? {}),
+    z
+      .object({ entity: z.string().optional(), limit: z.number().min(1).max(500).default(200) })
+      .parse(input ?? {}),
   )
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as SupabaseCtx;

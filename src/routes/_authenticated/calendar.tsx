@@ -18,7 +18,10 @@ export const Route = createFileRoute("/_authenticated/calendar")({
       { title: `ปฏิทินงาน — ${APP_NAME} ${ORG_NAME}` },
       { name: "description", content: "ปฏิทินงานประชาสัมพันธ์ มุมมองรายวัน สัปดาห์ เดือน และปี" },
       { property: "og:title", content: `ปฏิทินงาน — ${APP_NAME}` },
-      { property: "og:description", content: "ปฏิทินงานประชาสัมพันธ์ มุมมองรายวัน สัปดาห์ เดือน และปี" },
+      {
+        property: "og:description",
+        content: "ปฏิทินงานประชาสัมพันธ์ มุมมองรายวัน สัปดาห์ เดือน และปี",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -52,7 +55,10 @@ function CalendarPage() {
       return { from: toISO(start), to: toISO(end) };
     }
     if (view === "month") {
-      return { from: toISO(new Date(d.getFullYear(), d.getMonth(), 1)), to: toISO(new Date(d.getFullYear(), d.getMonth() + 1, 0)) };
+      return {
+        from: toISO(new Date(d.getFullYear(), d.getMonth(), 1)),
+        to: toISO(new Date(d.getFullYear(), d.getMonth() + 1, 0)),
+      };
     }
     return { from: `${d.getFullYear()}-01-01`, to: `${d.getFullYear()}-12-31` };
   }, [view, cursor]);
@@ -105,9 +111,15 @@ function CalendarPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" onClick={() => move(-1)} aria-label="ก่อนหน้า"><ChevronLeft className="size-4" /></Button>
-          <Button variant="outline" size="sm" onClick={() => setCursor(new Date())}>วันนี้</Button>
-          <Button variant="outline" size="icon" onClick={() => move(1)} aria-label="ถัดไป"><ChevronRight className="size-4" /></Button>
+          <Button variant="outline" size="icon" onClick={() => move(-1)} aria-label="ก่อนหน้า">
+            <ChevronLeft className="size-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setCursor(new Date())}>
+            วันนี้
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => move(1)} aria-label="ถัดไป">
+            <ChevronRight className="size-4" />
+          </Button>
           <span className="ml-2 text-sm font-semibold">{title()}</span>
         </div>
         <Tabs value={view} onValueChange={(v) => setView(v as View)}>
@@ -123,9 +135,27 @@ function CalendarPage() {
       {isLoading ? (
         <Skeleton className="h-96 w-full" />
       ) : view === "month" ? (
-        <MonthView cursor={cursor} byDate={byDate} todayISO={todayISO} onSelect={(iso) => { setCursor(new Date(iso)); setView("day"); }} onCreate={openCreate} />
+        <MonthView
+          cursor={cursor}
+          byDate={byDate}
+          todayISO={todayISO}
+          onSelect={(iso) => {
+            setCursor(new Date(iso));
+            setView("day");
+          }}
+          onCreate={openCreate}
+        />
       ) : view === "year" ? (
-        <YearView cursor={cursor} byDate={byDate} onSelectMonth={(m) => { const d = new Date(cursor); d.setMonth(m); setCursor(d); setView("month"); }} />
+        <YearView
+          cursor={cursor}
+          byDate={byDate}
+          onSelectMonth={(m) => {
+            const d = new Date(cursor);
+            d.setMonth(m);
+            setCursor(d);
+            setView("month");
+          }}
+        />
       ) : (
         <ListView byDate={byDate} range={range} onOpen={setDetail} />
       )}
@@ -134,36 +164,58 @@ function CalendarPage() {
         item={detail}
         open={!!detail}
         onOpenChange={(o) => !o && setDetail(null)}
-        onEdit={(it) => { setDetail(null); setEditing(it); }}
+        onEdit={(it) => {
+          setDetail(null);
+          setEditing(it);
+        }}
       />
       <WorkItemDialog
         open={createOpen || !!editing}
         item={editing}
         defaultDate={createDate}
         onOpenChange={(o) => {
-          if (!o) { setCreateOpen(false); setEditing(null); queryClient.invalidateQueries(); }
+          if (!o) {
+            setCreateOpen(false);
+            setEditing(null);
+            queryClient.invalidateQueries();
+          }
         }}
       />
     </div>
   );
 }
 
-function MonthView({ cursor, byDate, todayISO, onSelect, onCreate }: {
-  cursor: Date; byDate: Record<string, any[]>; todayISO: string;
-  onSelect: (iso: string) => void; onCreate: (iso: string) => void;
+function MonthView({
+  cursor,
+  byDate,
+  todayISO,
+  onSelect,
+  onCreate,
+}: {
+  cursor: Date;
+  byDate: Record<string, any[]>;
+  todayISO: string;
+  onSelect: (iso: string) => void;
+  onCreate: (iso: string) => void;
 }) {
   const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const daysInMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
   const blanks = first.getDay();
   const cells: (string | null)[] = [
     ...Array<null>(blanks).fill(null),
-    ...Array.from({ length: daysInMonth }, (_, i) => toISO(new Date(cursor.getFullYear(), cursor.getMonth(), i + 1))),
+    ...Array.from({ length: daysInMonth }, (_, i) =>
+      toISO(new Date(cursor.getFullYear(), cursor.getMonth(), i + 1)),
+    ),
   ];
 
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <div className="grid grid-cols-7 border-b bg-muted/50 text-center text-xs font-medium text-muted-foreground">
-        {THAI_DAYS_SHORT.map((d, i) => <div key={i} className="py-2">{d}</div>)}
+        {THAI_DAYS_SHORT.map((d, i) => (
+          <div key={i} className="py-2">
+            {d}
+          </div>
+        ))}
       </div>
       <div className="grid grid-cols-7">
         {cells.map((iso, i) => (
@@ -202,11 +254,15 @@ function MonthView({ cursor, byDate, todayISO, onSelect, onCreate }: {
                       className="block w-full truncate rounded px-1 py-0.5 text-left text-[10px] font-medium text-primary-foreground sm:text-xs"
                       style={{ backgroundColor: w.category?.color ?? "#2563eb" }}
                     >
-                      {w.start_time ? `${w.start_time.slice(0, 5)} ` : ""}{w.title}
+                      {w.start_time ? `${w.start_time.slice(0, 5)} ` : ""}
+                      {w.title}
                     </button>
                   ))}
                   {(byDate[iso]?.length ?? 0) > 2 && (
-                    <button onClick={() => onSelect(iso)} className="px-1 text-[10px] text-muted-foreground hover:underline">
+                    <button
+                      onClick={() => onSelect(iso)}
+                      className="px-1 text-[10px] text-muted-foreground hover:underline"
+                    >
                       +{(byDate[iso]?.length ?? 0) - 2} งาน
                     </button>
                   )}
@@ -220,14 +276,22 @@ function MonthView({ cursor, byDate, todayISO, onSelect, onCreate }: {
   );
 }
 
-function YearView({ cursor, byDate, onSelectMonth }: {
-  cursor: Date; byDate: Record<string, any[]>; onSelectMonth: (m: number) => void;
+function YearView({
+  cursor,
+  byDate,
+  onSelectMonth,
+}: {
+  cursor: Date;
+  byDate: Record<string, any[]>;
+  onSelectMonth: (m: number) => void;
 }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {THAI_MONTHS.map((m, i) => {
         const prefix = `${cursor.getFullYear()}-${String(i + 1).padStart(2, "0")}`;
-        const count = Object.entries(byDate).filter(([d]) => d.startsWith(prefix)).reduce((s, [, v]) => s + v.length, 0);
+        const count = Object.entries(byDate)
+          .filter(([d]) => d.startsWith(prefix))
+          .reduce((s, [, v]) => s + v.length, 0);
         return (
           <button
             key={m}
@@ -244,8 +308,14 @@ function YearView({ cursor, byDate, onSelectMonth }: {
   );
 }
 
-function ListView({ byDate, range, onOpen }: {
-  byDate: Record<string, any[]>; range: { from: string; to: string }; onOpen: (w: any) => void;
+function ListView({
+  byDate,
+  range,
+  onOpen,
+}: {
+  byDate: Record<string, any[]>;
+  range: { from: string; to: string };
+  onOpen: (w: any) => void;
 }) {
   const days: string[] = [];
   const d = new Date(range.from);
@@ -265,30 +335,40 @@ function ListView({ byDate, range, onOpen }: {
 
   return (
     <div className="space-y-4">
-      {days.filter((iso) => (byDate[iso]?.length ?? 0) > 0).map((iso) => (
-        <div key={iso}>
-          <p className="mb-2 text-sm font-semibold">{formatThaiDate(iso)}</p>
-          <div className="space-y-2">
-            {(byDate[iso] ?? []).map((w: any) => (
-              <button
-                key={w.id}
-                onClick={() => onOpen(w)}
-                className="flex w-full items-center gap-3 rounded-xl border bg-card p-3 text-left transition-colors hover:bg-accent"
-              >
-                <span className="h-10 w-1 shrink-0 rounded-full" style={{ backgroundColor: w.category?.color ?? "#94a3b8" }} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{w.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {w.start_time ? `${w.start_time.slice(0, 5)} น.` : "ทั้งวัน"} · {w.category?.name ?? "ไม่ระบุประเภท"}
-                    {(w.assignees?.length ?? 0) > 0 && ` · ${w.assignees.map((a: any) => a.profile?.full_name).filter(Boolean).join(", ")}`}
-                  </p>
-                </div>
-                <StatusBadge status={w.status} />
-              </button>
-            ))}
+      {days
+        .filter((iso) => (byDate[iso]?.length ?? 0) > 0)
+        .map((iso) => (
+          <div key={iso}>
+            <p className="mb-2 text-sm font-semibold">{formatThaiDate(iso)}</p>
+            <div className="space-y-2">
+              {(byDate[iso] ?? []).map((w: any) => (
+                <button
+                  key={w.id}
+                  onClick={() => onOpen(w)}
+                  className="flex w-full items-center gap-3 rounded-xl border bg-card p-3 text-left transition-colors hover:bg-accent"
+                >
+                  <span
+                    className="h-10 w-1 shrink-0 rounded-full"
+                    style={{ backgroundColor: w.category?.color ?? "#94a3b8" }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{w.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {w.start_time ? `${w.start_time.slice(0, 5)} น.` : "ทั้งวัน"} ·{" "}
+                      {w.category?.name ?? "ไม่ระบุประเภท"}
+                      {(w.assignees?.length ?? 0) > 0 &&
+                        ` · ${w.assignees
+                          .map((a: any) => a.profile?.full_name)
+                          .filter(Boolean)
+                          .join(", ")}`}
+                    </p>
+                  </div>
+                  <StatusBadge status={w.status} />
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
     </div>
   );
 }

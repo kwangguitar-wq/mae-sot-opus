@@ -60,7 +60,8 @@ export function WorkItemDetail({
                 <p className="font-medium">{formatThaiDate(item.work_date)}</p>
                 {(item.start_time || item.end_time) && (
                   <p className="text-muted-foreground">
-                    {item.start_time?.slice(0, 5) ?? "--:--"} - {item.end_time?.slice(0, 5) ?? "--:--"} น.
+                    {item.start_time?.slice(0, 5) ?? "--:--"} -{" "}
+                    {item.end_time?.slice(0, 5) ?? "--:--"} น.
                   </p>
                 )}
               </div>
@@ -84,7 +85,9 @@ export function WorkItemDetail({
               <Separator />
               <div>
                 <p className="mb-1 text-sm font-semibold">รายละเอียด</p>
-                <p className="whitespace-pre-wrap text-sm text-muted-foreground">{item.description}</p>
+                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                  {item.description}
+                </p>
               </div>
             </>
           )}

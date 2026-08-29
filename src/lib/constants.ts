@@ -16,7 +16,10 @@ export const STATUS_LABELS: Record<string, string> = {
   cancelled: "ยกเลิก",
 };
 
-export const PRIORITY_VARIANTS: Record<string, "secondary" | "outline" | "warning" | "destructive"> = {
+export const PRIORITY_VARIANTS: Record<
+  string,
+  "secondary" | "outline" | "warning" | "destructive"
+> = {
   low: "secondary",
   medium: "outline",
   high: "warning",
@@ -44,8 +47,18 @@ export type ModuleKey = (typeof MODULES)[number]["key"];
 
 export const THAI_DAYS_SHORT = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
 export const THAI_MONTHS = [
-  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
-  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
 ];
 
 export function formatThaiDate(iso: string | Date): string {

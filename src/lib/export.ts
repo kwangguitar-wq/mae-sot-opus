@@ -1,5 +1,9 @@
 // ส่งออกข้อมูลเป็น CSV (เปิดด้วย Excel ได้ — ใส่ BOM เพื่อให้ภาษาไทยถูกต้อง)
-export function downloadCSV(filename: string, headers: string[], rows: (string | number | null | undefined)[][]) {
+export function downloadCSV(
+  filename: string,
+  headers: string[],
+  rows: (string | number | null | undefined)[][],
+) {
   const escape = (v: string | number | null | undefined) => {
     const s = v == null ? "" : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;

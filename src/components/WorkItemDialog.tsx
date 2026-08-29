@@ -7,7 +7,11 @@ import { toast } from "sonner";
 import { Paperclip, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  createWorkItem, updateWorkItem, listCategories, listLocations, listProfiles,
+  createWorkItem,
+  updateWorkItem,
+  listCategories,
+  listLocations,
+  listProfiles,
 } from "@/lib/work.functions";
 import { PRIORITY_LABELS, STATUS_LABELS } from "@/lib/constants";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -17,7 +21,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 const formSchema = z.object({
@@ -72,16 +80,28 @@ export function WorkItemDialog({
   const [attachment, setAttachment] = useState<File | null>(null);
   const isEdit = !!item;
 
-  const { data: categories } = useQuery({ queryKey: ["categories"], queryFn: () => listCategories() });
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => listCategories(),
+  });
   const { data: locations } = useQuery({ queryKey: ["locations"], queryFn: () => listLocations() });
   const { data: profiles } = useQuery({ queryKey: ["profiles"], queryFn: () => listProfiles() });
 
   const form = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "", description: "", category_id: null, work_date: defaultDate ?? "",
-      start_time: null, end_time: null, location_id: null, location_text: "",
-      priority: "medium", status: "pending", note: "", assignee_ids: [],
+      title: "",
+      description: "",
+      category_id: null,
+      work_date: defaultDate ?? "",
+      start_time: null,
+      end_time: null,
+      location_id: null,
+      location_text: "",
+      priority: "medium",
+      status: "pending",
+      note: "",
+      assignee_ids: [],
     },
   });
 
@@ -105,16 +125,25 @@ export function WorkItemDialog({
       });
     } else {
       form.reset({
-        title: "", description: "", category_id: null,
+        title: "",
+        description: "",
+        category_id: null,
         work_date: defaultDate ?? new Date().toISOString().slice(0, 10),
-        start_time: null, end_time: null, location_id: null, location_text: "",
-        priority: "medium", status: "pending", note: "", assignee_ids: [],
+        start_time: null,
+        end_time: null,
+        location_id: null,
+        location_text: "",
+        priority: "medium",
+        status: "pending",
+        note: "",
+        assignee_ids: [],
       });
     }
   }, [open, item, defaultDate, form]);
 
   async function uploadAttachment(): Promise<{ url: string | null; name: string | null }> {
-    if (!attachment) return { url: item?.attachment_url ?? null, name: item?.attachment_name ?? null };
+    if (!attachment)
+      return { url: item?.attachment_url ?? null, name: item?.attachment_name ?? null };
     if (attachment.size > 20 * 1024 * 1024) throw new Error("ไฟล์แนบต้องไม่เกิน 20MB");
     const ext = attachment.name.split(".").pop();
     const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
@@ -186,11 +215,15 @@ export function WorkItemDialog({
                 value={form.watch("category_id") ?? "none"}
                 onValueChange={(v) => form.setValue("category_id", v === "none" ? null : v)}
               >
-                <SelectTrigger><SelectValue placeholder="เลือกประเภทงาน" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="เลือกประเภทงาน" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">ไม่ระบุ</SelectItem>
                   {(categories ?? []).map((c: any) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -199,7 +232,9 @@ export function WorkItemDialog({
               <Label htmlFor="work_date">วันที่ *</Label>
               <Input id="work_date" type="date" {...form.register("work_date")} />
               {form.formState.errors.work_date && (
-                <p className="text-xs text-destructive">{form.formState.errors.work_date.message}</p>
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.work_date.message}
+                </p>
               )}
             </div>
             <div className="space-y-1.5">
@@ -219,18 +254,26 @@ export function WorkItemDialog({
                 value={form.watch("location_id") ?? "none"}
                 onValueChange={(v) => form.setValue("location_id", v === "none" ? null : v)}
               >
-                <SelectTrigger><SelectValue placeholder="เลือกสถานที่" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="เลือกสถานที่" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">ไม่ระบุ</SelectItem>
                   {(locations ?? []).map((l: any) => (
-                    <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
+                    <SelectItem key={l.id} value={l.id}>
+                      {l.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="location_text">สถานที่เพิ่มเติม</Label>
-              <Input id="location_text" {...form.register("location_text")} placeholder="ระบุเองหากไม่มีในรายการ" />
+              <Input
+                id="location_text"
+                {...form.register("location_text")}
+                placeholder="ระบุเองหากไม่มีในรายการ"
+              />
             </div>
             <div className="space-y-1.5">
               <Label>ระดับความสำคัญ</Label>
@@ -238,10 +281,14 @@ export function WorkItemDialog({
                 value={form.watch("priority")}
                 onValueChange={(v) => form.setValue("priority", v as FormValues["priority"])}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {Object.entries(PRIORITY_LABELS).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                    <SelectItem key={k} value={k}>
+                      {v}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -252,10 +299,14 @@ export function WorkItemDialog({
                 value={form.watch("status")}
                 onValueChange={(v) => form.setValue("status", v as FormValues["status"])}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {Object.entries(STATUS_LABELS).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                    <SelectItem key={k} value={k}>
+                      {v}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -269,7 +320,10 @@ export function WorkItemDialog({
                 <p className="text-sm text-muted-foreground">ยังไม่มีผู้ใช้ในระบบ</p>
               )}
               {(profiles ?? []).map((p: any) => (
-                <label key={p.id} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-accent">
+                <label
+                  key={p.id}
+                  className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-accent"
+                >
                   <Checkbox
                     checked={assignees.includes(p.id)}
                     onCheckedChange={(checked) => {
@@ -280,7 +334,9 @@ export function WorkItemDialog({
                     }}
                   />
                   <span>{p.full_name}</span>
-                  {p.position && <span className="text-xs text-muted-foreground">({p.position})</span>}
+                  {p.position && (
+                    <span className="text-xs text-muted-foreground">({p.position})</span>
+                  )}
                 </label>
               ))}
             </div>
@@ -296,7 +352,7 @@ export function WorkItemDialog({
             <div className="flex items-center gap-2">
               <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed px-4 py-2.5 text-sm text-muted-foreground hover:bg-accent">
                 <Paperclip className="size-4" />
-                {attachment ? attachment.name : item?.attachment_name ?? "เลือกไฟล์"}
+                {attachment ? attachment.name : (item?.attachment_name ?? "เลือกไฟล์")}
                 <input
                   type="file"
                   className="hidden"
@@ -304,7 +360,13 @@ export function WorkItemDialog({
                 />
               </label>
               {attachment && (
-                <Button type="button" variant="ghost" size="icon" onClick={() => setAttachment(null)} aria-label="ยกเลิกไฟล์">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setAttachment(null)}
+                  aria-label="ยกเลิกไฟล์"
+                >
                   <X className="size-4" />
                 </Button>
               )}
@@ -312,7 +374,9 @@ export function WorkItemDialog({
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>ยกเลิก</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              ยกเลิก
+            </Button>
             <Button type="submit" disabled={saving}>
               {saving ? "กำลังบันทึก..." : isEdit ? "บันทึกการแก้ไข" : "สร้างงาน"}
             </Button>

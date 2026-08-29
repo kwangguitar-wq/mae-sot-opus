@@ -3,10 +3,19 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, FileDown, Printer, Pencil, Trash2, Eye } from "lucide-react";
 import {
-  listWorkItems, listCategories, listLocations, listProfiles, deleteWorkItem, getWorkItem,
+  listWorkItems,
+  listCategories,
+  listLocations,
+  listProfiles,
+  deleteWorkItem,
+  getWorkItem,
 } from "@/lib/work.functions";
 import {
-  APP_NAME, ORG_NAME, PRIORITY_LABELS, STATUS_LABELS, formatThaiDate,
+  APP_NAME,
+  ORG_NAME,
+  PRIORITY_LABELS,
+  STATUS_LABELS,
+  formatThaiDate,
 } from "@/lib/constants";
 import { downloadCSV } from "@/lib/export";
 import { Button } from "@/components/ui/button";
@@ -15,11 +24,21 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { PriorityBadge, StatusBadge, CategoryDot } from "@/components/badges";
 import { WorkItemDialog } from "@/components/WorkItemDialog";
@@ -36,7 +55,10 @@ export const Route = createFileRoute("/_authenticated/tasks")({
   head: () => ({
     meta: [
       { title: `จัดการงาน — ${APP_NAME} ${ORG_NAME}` },
-      { name: "description", content: "ค้นหา กรอง เพิ่ม แก้ไข และลบงานประชาสัมพันธ์ พร้อมส่งออก Excel/CSV และพิมพ์" },
+      {
+        name: "description",
+        content: "ค้นหา กรอง เพิ่ม แก้ไข และลบงานประชาสัมพันธ์ พร้อมส่งออก Excel/CSV และพิมพ์",
+      },
       { property: "og:title", content: `จัดการงาน — ${APP_NAME}` },
       { property: "og:description", content: "ค้นหาและจัดการงานประชาสัมพันธ์ทั้งหมด" },
       { property: "og:type", content: "website" },
@@ -94,17 +116,31 @@ function TasksPage() {
     [q, from, to, categoryId, status, priority, assigneeId, locationId],
   );
 
-  const { data: items, isLoading, isError, refetch } = useQuery({
+  const {
+    data: items,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["work-items", "list", filters],
     queryFn: () => listWorkItems({ data: filters }),
   });
-  const { data: categories } = useQuery({ queryKey: ["categories"], queryFn: () => listCategories() });
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => listCategories(),
+  });
   const { data: locations } = useQuery({ queryKey: ["locations"], queryFn: () => listLocations() });
   const { data: profiles } = useQuery({ queryKey: ["profiles"], queryFn: () => listProfiles() });
 
   function resetFilters() {
-    setQ(""); setFrom(""); setTo("");
-    setCategoryId(ALL); setStatus(ALL); setPriority(ALL); setAssigneeId(ALL); setLocationId(ALL);
+    setQ("");
+    setFrom("");
+    setTo("");
+    setCategoryId(ALL);
+    setStatus(ALL);
+    setPriority(ALL);
+    setAssigneeId(ALL);
+    setLocationId(ALL);
   }
 
   function exportCSV() {
@@ -115,14 +151,28 @@ function TasksPage() {
       w.title,
       w.category?.name ?? "",
       w.location?.name ?? w.location_text ?? "",
-      (w.assignees ?? []).map((a: any) => a.profile?.full_name).filter(Boolean).join(", "),
+      (w.assignees ?? [])
+        .map((a: any) => a.profile?.full_name)
+        .filter(Boolean)
+        .join(", "),
       PRIORITY_LABELS[w.priority] ?? w.priority,
       STATUS_LABELS[w.status] ?? w.status,
       w.note ?? "",
     ]);
     downloadCSV(
       `ตารางงาน-${new Date().toISOString().slice(0, 10)}.csv`,
-      ["วันที่", "เริ่ม", "สิ้นสุด", "ชื่องาน", "ประเภท", "สถานที่", "ผู้รับผิดชอบ", "ความสำคัญ", "สถานะ", "หมายเหตุ"],
+      [
+        "วันที่",
+        "เริ่ม",
+        "สิ้นสุด",
+        "ชื่องาน",
+        "ประเภท",
+        "สถานที่",
+        "ผู้รับผิดชอบ",
+        "ความสำคัญ",
+        "สถานะ",
+        "หมายเหตุ",
+      ],
       rows,
     );
     toast.success("ส่งออกไฟล์ CSV แล้ว");
@@ -148,7 +198,12 @@ function TasksPage() {
       <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
         <h1 className="text-xl font-bold lg:text-2xl">จัดการงาน</h1>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={exportCSV} disabled={(items ?? []).length === 0}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportCSV}
+            disabled={(items ?? []).length === 0}
+          >
             <FileDown className="mr-1 size-4" /> ส่งออก CSV
           </Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}>
@@ -166,7 +221,13 @@ function TasksPage() {
             <Label htmlFor="q">ค้นหา</Label>
             <div className="relative">
               <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-              <Input id="q" className="pl-8" value={q} onChange={(e) => setQ(e.target.value)} placeholder="ชื่องาน รายละเอียด หรือสถานที่" />
+              <Input
+                id="q"
+                className="pl-8"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="ชื่องาน รายละเอียด หรือสถานที่"
+              />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -180,72 +241,110 @@ function TasksPage() {
           <div className="space-y-1.5">
             <Label>ประเภทงาน</Label>
             <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>ทุกประเภท</SelectItem>
-                {(categories ?? []).map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                {(categories ?? []).map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label>สถานะ</Label>
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>ทุกสถานะ</SelectItem>
-                {Object.entries(STATUS_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>
+                    {v}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label>ความสำคัญ</Label>
             <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>ทุกระดับ</SelectItem>
-                {Object.entries(PRIORITY_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                {Object.entries(PRIORITY_LABELS).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>
+                    {v}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label>ผู้รับผิดชอบ</Label>
             <Select value={assigneeId} onValueChange={setAssigneeId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>ทุกคน</SelectItem>
-                {(profiles ?? []).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                {(profiles ?? []).map((p: any) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.full_name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label>สถานที่</Label>
             <Select value={locationId} onValueChange={setLocationId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>ทุกสถานที่</SelectItem>
-                {(locations ?? []).map((l: any) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+                {(locations ?? []).map((l: any) => (
+                  <SelectItem key={l.id} value={l.id}>
+                    {l.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="flex items-end">
-            <Button variant="ghost" size="sm" onClick={resetFilters}>ล้างตัวกรอง</Button>
+            <Button variant="ghost" size="sm" onClick={resetFilters}>
+              ล้างตัวกรอง
+            </Button>
           </div>
         </CardContent>
       </Card>
 
       <div className="hidden print:block">
-        <h2 className="text-lg font-bold">{APP_NAME} {ORG_NAME}</h2>
+        <h2 className="text-lg font-bold">
+          {APP_NAME} {ORG_NAME}
+        </h2>
         <p className="text-sm">พิมพ์เมื่อ {formatThaiDate(new Date())}</p>
       </div>
 
       {isError ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center">
           <p className="text-muted-foreground">โหลดรายการงานไม่สำเร็จ</p>
-          <Button variant="outline" onClick={() => refetch()}>ลองอีกครั้ง</Button>
+          <Button variant="outline" onClick={() => refetch()}>
+            ลองอีกครั้ง
+          </Button>
         </div>
       ) : isLoading ? (
         <div className="space-y-2">
-          {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full" />)}
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
         </div>
       ) : (items ?? []).length === 0 ? (
         <div className="rounded-xl border bg-card py-16 text-center text-sm text-muted-foreground">
@@ -253,19 +352,31 @@ function TasksPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground print:hidden">พบ {(items ?? []).length} รายการ</p>
+          <p className="text-xs text-muted-foreground print:hidden">
+            พบ {(items ?? []).length} รายการ
+          </p>
           {(items ?? []).map((w: any) => (
-            <div key={w.id} className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-3">
+            <div
+              key={w.id}
+              className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-3"
+            >
               <CategoryDot color={w.category?.color} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{w.title}</p>
                 <p className="text-xs text-muted-foreground">
-                  {formatThaiDate(w.work_date)} · {w.start_time ? `${w.start_time.slice(0, 5)} น.` : "ทั้งวัน"} · {w.category?.name ?? "ไม่ระบุประเภท"}
-                  {(w.location?.name || w.location_text) && ` · ${w.location?.name ?? w.location_text}`}
+                  {formatThaiDate(w.work_date)} ·{" "}
+                  {w.start_time ? `${w.start_time.slice(0, 5)} น.` : "ทั้งวัน"} ·{" "}
+                  {w.category?.name ?? "ไม่ระบุประเภท"}
+                  {(w.location?.name || w.location_text) &&
+                    ` · ${w.location?.name ?? w.location_text}`}
                 </p>
                 {(w.assignees ?? []).length > 0 && (
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    ผู้รับผิดชอบ: {(w.assignees ?? []).map((a: any) => a.profile?.full_name).filter(Boolean).join(", ")}
+                    ผู้รับผิดชอบ:{" "}
+                    {(w.assignees ?? [])
+                      .map((a: any) => a.profile?.full_name)
+                      .filter(Boolean)
+                      .join(", ")}
                   </p>
                 )}
               </div>
@@ -274,10 +385,20 @@ function TasksPage() {
                 <StatusBadge status={w.status} />
               </div>
               <div className="flex gap-1 print:hidden">
-                <Button variant="ghost" size="icon" aria-label="ดูรายละเอียด" onClick={() => setDetail(w)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="ดูรายละเอียด"
+                  onClick={() => setDetail(w)}
+                >
                   <Eye className="size-4" />
                 </Button>
-                <Button variant="ghost" size="icon" aria-label="แก้ไข" onClick={() => setEditing(w)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="แก้ไข"
+                  onClick={() => setEditing(w)}
+                >
                   <Pencil className="size-4" />
                 </Button>
                 <Button variant="ghost" size="icon" aria-label="ลบ" onClick={() => setDeleting(w)}>
@@ -293,13 +414,20 @@ function TasksPage() {
         item={detail}
         open={!!detail}
         onOpenChange={(o) => !o && setDetail(null)}
-        onEdit={(it) => { setDetail(null); setEditing(it); }}
+        onEdit={(it) => {
+          setDetail(null);
+          setEditing(it);
+        }}
       />
       <WorkItemDialog
         open={createOpen || !!editing}
         item={editing}
         onOpenChange={(o) => {
-          if (!o) { setCreateOpen(false); setEditing(null); queryClient.invalidateQueries(); }
+          if (!o) {
+            setCreateOpen(false);
+            setEditing(null);
+            queryClient.invalidateQueries();
+          }
         }}
       />
 
@@ -313,7 +441,13 @@ function TasksPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={busy}>ยกเลิก</AlertDialogCancel>
-            <AlertDialogAction onClick={(e) => { e.preventDefault(); confirmDelete(); }} disabled={busy}>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDelete();
+              }}
+              disabled={busy}
+            >
               {busy ? "กำลังลบ..." : "ลบงาน"}
             </AlertDialogAction>
           </AlertDialogFooter>

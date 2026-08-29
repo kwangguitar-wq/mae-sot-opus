@@ -15,7 +15,14 @@ type LineSettings = {
   notify_on_update?: boolean;
   target_id?: string;
   message_template?: string;
+  app_url?: string;
 };
+
+/** ลิงก์เปิดงานโดยตรง — ใช้ค่า app_url จากหน้าตั้งค่า มิฉะนั้นใช้โดเมนที่เผยแพร่ */
+export function buildWorkLink(workId: string, appUrl?: string): string {
+  const base = (appUrl || process.env["APP_BASE_URL"] || "https://mee-sot-opus.lovable.app").replace(/\/+$/, "");
+  return `${base}/tasks?task=${workId}`;
+}
 
 const RETRYABLE = new Set([429, 500, 502, 503, 504]);
 
@@ -84,7 +91,7 @@ export async function pushLineMessage(
 export async function notifyLineWorkEvent(
   supabase: { from: (t: string) => any },
   event: "create" | "update",
-  work: { id: string; title: string; work_date: string; start_time?: string | null },
+  work: { id: string; title: string; work_date: string; start_time?: string | null; updated_at?: string | null },
 ): Promise<LineSendResult> {
   try {
     const { data } = await supabase.from("settings").select("value").eq("key", "line").maybeSingle();
@@ -96,12 +103,20 @@ export async function notifyLineWorkEvent(
       return { sent: false, reason: "disabled", message: "ปิดการแจ้งเตือนเมื่อแก้ไขงาน" };
 
     const template = cfg.message_template || "มีงานใหม่: {title} วันที่ {date}";
-    const text = template
+    const link = buildWorkLink(work.id, cfg.app_url);
+    let text = template
       .replaceAll("{title}", work.title)
       .replaceAll("{date}", work.work_date)
-      .replaceAll("{time}", work.start_time ?? "-");
+      .replaceAll("{time}", work.start_time ?? "-")
+      .replaceAll("{link}", link);
+    // ถ้าเทมเพลตไม่ได้ใส่ {link} ไว้ ให้แนบลิงก์ต่อท้ายอัตโนมัติ
+    if (!template.includes("{link}")) text += `\n🔗 เปิดดูงาน: ${link}`;
     const prefix = event === "update" ? "อัปเดตงาน — " : "";
-    return await pushLineMessage(cfg.target_id ?? "", prefix + text, `${event}-${work.id}-${work.work_date}`);
+    return await pushLineMessage(
+      cfg.target_id ?? "",
+      prefix + text,
+      `${event}-${work.id}-${work.work_date}-${work.updated_at ?? ""}`,
+    );
   } catch {
     return { sent: false, reason: "network_error", message: "ไม่สามารถส่งแจ้งเตือน LINE ได้ในขณะนี้" };
   }

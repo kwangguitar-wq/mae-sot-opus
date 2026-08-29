@@ -204,6 +204,7 @@ export const updateLineSettings = createServerFn({ method: "POST" })
       notify_on_update: z.boolean(),
       target_id: z.string().trim().max(100).default(""),
       message_template: z.string().trim().max(500).default("มีงานใหม่: {title} วันที่ {date}"),
+      app_url: z.string().trim().max(300).default(""),
     }).parse(input),
   )
   .handler(async ({ data, context }) => {

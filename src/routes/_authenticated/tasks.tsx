@@ -71,14 +71,17 @@ function TasksPage() {
   }, [create]);
 
   // เปิดรายละเอียดงานอัตโนมัติเมื่อเข้ามาจากลิงก์ใน LINE (?task=<id>)
-  const { data: linkedTask } = useQuery({
+  const { data: linkedTask, error: linkedError } = useQuery({
     queryKey: ["work-item", task],
     queryFn: () => getWorkItem({ data: { id: task! } }),
     enabled: !!task,
   });
   useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log("[deeplink]", task, linkedTask, linkedError);
     if (linkedTask) setDetail(linkedTask);
-  }, [linkedTask]);
+  }, [linkedTask, linkedError, task]);
+
 
   const filters = useMemo(
     () => ({

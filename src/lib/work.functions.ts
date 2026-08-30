@@ -121,13 +121,24 @@ export const getWorkItem = createServerFn({ method: "GET" })
     const { data: item, error } = await ctx.supabase
       .from("work_items")
       .select(
-        "*, category:categories(id, name, color), location:locations(id, name), assignees:work_assignees(user_id, profile:profiles(id, full_name, position)), creator:profiles!work_items_created_by_fkey(id, full_name)",
+        "*, category:categories(id, name, color), location:locations(id, name), assignees:work_assignees(user_id, profile:profiles(id, full_name, position))",
       )
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return item;
+    if (!item) return null;
+    let creator: { id: string; full_name: string } | null = null;
+    if (item.created_by) {
+      const { data: cp } = await ctx.supabase
+        .from("profiles")
+        .select("id, full_name")
+        .eq("id", item.created_by)
+        .maybeSingle();
+      creator = cp ?? null;
+    }
+    return { ...item, creator };
   });
+
 
 export const getDashboardStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
